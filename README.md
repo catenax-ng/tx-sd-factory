@@ -46,7 +46,7 @@ For the VC we have to provide valid JSON context where we have a reference to an
 from known ontology. This object carries the claims the SD-Factory signs. The document
 is published on the [github repository of the project](src/main/resources/verifiablecredentials.jsonld/sd-document-v0.3.jsonld).
 The vocabulary URL can be changed when will be provided by Trusted Framework. 
-Currently, the vocabulary is defined here:
+Currently, the vocabulary is defined here:-
 
 ```json
 {
