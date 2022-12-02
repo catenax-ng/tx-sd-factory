@@ -469,7 +469,7 @@ There are diffrent ways to do the installation
           realm: ""   -> Keycloak Realm  <br />
           resource: ""  ->  Keycloak Resource   <br />
           custodianWalletUri: "" -> Custodian wallet URI  <br /> 
-    d.) These secrets should be defined in Hashicorp vault
+    d.) These secrets should be defined in Hashicorp vault   <br /> 
     e.) Deploy in a kubernetes cluster  <br />
         helm install sdfactory charts/SDFactory/ -n NameSpace  <br />
 
