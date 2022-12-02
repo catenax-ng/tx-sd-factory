@@ -69,3 +69,13 @@ spec:
             secretKeyRef:
               name: {{ .Values.sdfactory.secret.name }}
               key: auth-server-url
+        - name: APP_CUSTODIANWALLET_URI
+          valueFrom: 
+            secretKeyRef:
+              name: {{ .Values.sdfactory.secret.name }}
+              key: custodianWalletUri
+        - name: APP_CUSTODIANWALLET_REALM
+          valueFrom: 
+            secretKeyRef:
+              name: {{ .Values.sdfactory.secret.name }}
+              key: realm
