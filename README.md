@@ -46,7 +46,7 @@ For the VC we have to provide valid JSON context where we have a reference to an
 from known ontology. This object carries the claims the SD-Factory signs. The document
 is published on the [github repository of the project](src/main/resources/verifiablecredentials.jsonld/sd-document-v0.3.jsonld).
 The vocabulary URL can be changed when will be provided by Trusted Framework. 
-Currently, the vocabulary is defined here:
+Currently, the vocabulary is defined here:-
 
 ```json
 {
@@ -462,11 +462,14 @@ There are diffrent ways to do the installation
     a.) git clone https://github.com/catenax-ng/product-sd-hub.git  <br />
     b.) Modify values file according to your requirement.  <br />
     c.) You need to define the secrets as well in values.yaml
-        secret:
-          name: ""
-          clientId: ""
-          clientSecret: ""
-    d.) These secrets should be defined in Hashicorp vault
+        secret:  <br />
+          clientId: ""  -> Custodian wallet client id  <br />
+          clientSecret: ""  -> Custodian wallet client secret  <br />
+          authServerUrl: ""  ->  Keycloak URL   <br />
+          realm: ""   -> Keycloak Realm  <br />
+          resource: ""  ->  Keycloak Resource   <br />
+          custodianWalletUri: "" -> Custodian wallet URI  <br /> 
+    d.) These secrets should be defined in Hashicorp vault   <br /> 
     e.) Deploy in a kubernetes cluster  <br />
         helm install sdfactory charts/SDFactory/ -n NameSpace  <br />
 
