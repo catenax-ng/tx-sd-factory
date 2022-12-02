@@ -21,6 +21,7 @@
 name: Release - Helm Charts
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'charts/**'
