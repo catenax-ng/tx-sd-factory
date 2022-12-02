@@ -466,9 +466,9 @@ There are diffrent ways to do the installation
           clientId: ""  -> Custodian wallet client id  <br />
           clientSecret: ""  -> Custodian wallet client secret  <br />
           authServerUrl: ""  ->  Keycloak URL   <br />
-          realm: ""   Keycloak Realm  <br />
+          realm: ""   -> Keycloak Realm  <br />
           resource: ""  ->  Keycloak Resource   <br />
-          custodianWalletUri: "" Custodian wallet URI  <br /> 
+          custodianWalletUri: "" -> Custodian wallet URI  <br /> 
     d.) These secrets should be defined in Hashicorp vault
     e.) Deploy in a kubernetes cluster  <br />
         helm install sdfactory charts/SDFactory/ -n NameSpace  <br />
