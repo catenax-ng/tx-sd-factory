@@ -51,7 +51,7 @@ ingress:
     - host: "sdfactory-r3.int.demo.catena-x.net"
       paths:
         - path: /
-          pathType: ImplementationSpecific
+          pathType: Prefix
   tls:
     - secretName: tls-secret
       hosts:
