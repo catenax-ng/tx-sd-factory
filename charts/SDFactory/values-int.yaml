@@ -59,7 +59,7 @@ ingress:
 
 service:
   type: ClusterIP
-  port: 8282
+  port: 80
   targetPort: 8080
   
 sdfactory:
