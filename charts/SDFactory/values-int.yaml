@@ -57,6 +57,11 @@ ingress:
       hosts:
         - sdfactory-r3.int.demo.catena-x.net
 
+service:
+  type: ClusterIP
+  port: 82
+  targetPort: 8282
+  
 sdfactory:
   secret:
     clientId: "<path:essential-services/data/custodian#clientId>"
