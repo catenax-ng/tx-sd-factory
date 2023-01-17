@@ -53,9 +53,9 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - secretName: tls-secret
+      hosts:
+        - sdfactory.dev.demo.catena-x.net
 
 sdfactory:
   secret:
