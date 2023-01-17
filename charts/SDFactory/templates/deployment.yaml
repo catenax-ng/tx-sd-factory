@@ -26,11 +26,11 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "sdfactory.fullname" . }}
+      {{- include "sdfactory.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ include "sdfactory.fullname" . }}
+        {{- include "sdfactory.selectorLabels" . | nindent 8 }}
     spec:
       containers:
       - name: {{ include "sdfactory.fullname" . }}
