@@ -52,11 +52,15 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
-  tls: []
+  tls:
     - secretName: tls-secret
       hosts:
         - sdfactory1.dev.demo.catena-x.net
-
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  
 sdfactory:
   secret:
     clientId: "<path:essential-services/data/custodian-dev#clientId>"
