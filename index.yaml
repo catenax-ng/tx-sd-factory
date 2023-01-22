@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   sdfactory:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2023-01-22T05:57:44.722251568Z"
+    description: A Helm chart for Kubernetes
+    digest: 4143d3294dd7a7a3567ddd9743ef676e9e55a15323be91de9319c84ee6c1faee
+    name: sdfactory
+    type: application
+    urls:
+    - https://github.com/catenax-ng/tx-sd-factory/releases/download/sdfactory-1.0.9/sdfactory-1.0.9.tgz
+    version: 1.0.9
+  - apiVersion: v2
     appVersion: 1.2.0
     created: "2023-01-11T09:22:08.62475519Z"
     description: A Helm chart for SDFactory
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://github.com/catenax-ng/tx-sd-factory/releases/download/sdfactory-1.0.7/sdfactory-1.0.7.tgz
     version: 1.0.7
-generated: "2023-01-11T09:22:08.62476149Z"
+generated: "2023-01-22T05:57:44.722263568Z"
