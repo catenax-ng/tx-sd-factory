@@ -85,16 +85,16 @@ public class SDocumentConverterGaiaX extends SDocumentConverter implements Conve
 
     private Map<String, Object> legalPerson(LegalPersonSchema legalPersonSchema) {
         Map<String, Object> res = new LinkedHashMap<>();
-        res.put("id", custodianWallet.getWalletData(legalPersonSchema.getBpn()).get("did").asText());
+        res.put("id", custodianWallet.getWalletData(legalPersonSchema.getBpn()).get("did"));
         res.put("type", legalPersonSchema.getType());
         res.put("ctxsd:bpn", legalPersonSchema.getBpn());
-        res.put("gx-participant:name", custodianWallet.getWalletData(legalPersonSchema.getBpn()).get("name").asText());
+        res.put("gx-participant:name", custodianWallet.getWalletData(legalPersonSchema.getBpn()).get("name"));
         res.put(
                 "gx-participant:registrationNumber",
                 legalPersonSchema.getRegistrationNumber().stream().map(
                     regNum -> {
                         var regNumNode = new LinkedHashMap<String, Object>();
-                        regNumNode.put("gx-participant:registrationNumberType", regNum.getType().toString());
+                        regNumNode.put("gx-participant:registrationNumberType", regNum.getType());
                         regNumNode.put("gx-participant:registrationNumberNumber", regNum.getValue());
                         return regNumNode;
                     }).toList()
@@ -104,7 +104,7 @@ public class SDocumentConverterGaiaX extends SDocumentConverter implements Conve
 
     private Map<String, Object> serviceOffering(ServiceOfferingSchema serviceOfferingSchema) {
         Map<String, Object> res = new LinkedHashMap<>();
-        res.put("id", custodianWallet.getWalletData(serviceOfferingSchema.getHolder()).get("did").asText());
+        res.put("id", custodianWallet.getWalletData(serviceOfferingSchema.getHolder()).get("did"));
         res.put("type", serviceOfferingSchema.getType());
         res.put("ctxsd:connector-url", "https://connector-placeholder.net");
         res.put("gx-service:providedBy", serviceOfferingSchema.getProvidedBy());
