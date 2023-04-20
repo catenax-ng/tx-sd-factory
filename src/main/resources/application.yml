@@ -28,6 +28,8 @@ keycloak:
 spring:
   jackson:
     default-property-inclusion: non_null
+  profiles:
+    active: test
   security:
     oauth2:
       resourceserver:
