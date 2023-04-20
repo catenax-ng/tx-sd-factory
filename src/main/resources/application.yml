@@ -60,7 +60,7 @@ app:
       #clientId: sa-cl2-02
       #clientSecret:
   security:
-    createRole: retrieve_daps_client
+    createRole: create_daps_client
 logging:
   level:
     org.eclipse.tractusx.selfdescriptionfactory: DEBUG
