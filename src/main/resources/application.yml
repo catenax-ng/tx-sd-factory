@@ -34,7 +34,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          #jwk-set-uri: https://centralidp.int.demo.catena-x.net/auth/realms/CX-Central/protocol/openid-connect/certs
+          jwk-set-uri: https://keycloak-pen.int.demo.catena-x.net/realms/CX-Central/protocol/openid-connect/certs
 springdoc:
   api-docs:
     enabled: true
