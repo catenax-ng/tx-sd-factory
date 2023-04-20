@@ -24,7 +24,7 @@ server:
     include-message: always
 keycloak:
   resource:
-    clientid: Cl2-CX-Portal
+    clientid: Cl6-CX-DAPS
 spring:
   jackson:
     default-property-inclusion: non_null
@@ -58,7 +58,7 @@ app:
       #clientId: sa-cl2-02
       #clientSecret:
   security:
-    createRole: add_self_descriptions
+    createRole: retrievedrsuser
 logging:
   level:
     org.eclipse.tractusx.selfdescriptionfactory: DEBUG
