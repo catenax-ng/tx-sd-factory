@@ -5,16 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
+ - NA
+ 
+ 
+## [2.0.5] - 2023-04-24
+
+### Fixed
+- Fixed spring security web veracode security by upgrading its version to 6.0.3
 
 ### Changed
 - refactoring: removing keycloak-admin, webclient; introducing feign
 
 
-## [2.0.2] - 2023-03-01
+## [2.0.4] - 2023-04-19
+
+### Added
+
+- Added spring expression 6.0.8
+
+
+## [2.0.3] - 2023-04-11
 
 ### Changed
-- upgrade Spring Boot to 3.0.3
-- upgrade Snakeyaml to 2.0 as 1.33 has security issue
+- Spring Boot upgrade to 3.0.5
+
+
+## [2.0.2] - 2023-03-23
+
+### Changed
+- Upgrade Spring Boot to 3.0.3
+- Upgrade Snakeyaml to 2.0 as 1.33 has security issue
+- Readme correction
+- Authors.md modification
+- Dockerfile modification
 
 ## [2.0.1] - 2023-02-23
 

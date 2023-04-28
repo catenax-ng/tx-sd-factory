@@ -13,8 +13,8 @@ further processing.
 ## Software Version
 
 ```shell
-Software version: 2.0.1
-Helm Chart version: 2.0.2
+Software version: 2.0.5
+Helm Chart version: 2.0.5
 
 ```
 
@@ -256,7 +256,7 @@ and the Custodian Wallet.
 
 ## Installation Steps
 
-https://github.com/eclipse-tractusx/sd-factory/blob/main/INSTALL.md
+[INSTALL.md](INSTALL.md)
 
 
 [Trust Framework]: https://gitlab.com/gaia-x/policy-rules-committee/trust-framework
