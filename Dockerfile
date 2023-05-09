@@ -35,8 +35,6 @@ RUN adduser \
     
 USER sdfuser
 
-WORKDIR /sdfactory
-
 ENTRYPOINT ["java", "-cp", "app:app/lib/*", "org.eclipse.tractusx.selfdescriptionfactory.SelfDescriptionFactoryApplication"]
 
 EXPOSE 8080
