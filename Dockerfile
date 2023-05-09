@@ -22,8 +22,6 @@ USER $USERNAME
 
 WORKDIR /sdfactory
 
-RUN apk update && apk upgrade
-
 ARG DEPENDENCY=/sdfactory/target/dependency
 
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
