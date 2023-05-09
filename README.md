@@ -258,7 +258,7 @@ This application provides container images for demonstration purposes. The base 
 Docker Hub:
 
  - eclipse-temurin(https://hub.docker.com/_/eclipse-temurin)
- - 17-jdk-alpine(https://hub.docker.com/layers/library/eclipse-temurin/17.0.6_10-jdk-alpine/images/sha256-c093675e143dc8023fb218c144e06491154491a7965d0664a93f99ada5259ec7?context=explore)
+ - 17-jdk(https://hub.docker.com/layers/library/eclipse-temurin/17.0.6_10-jdk/images/sha256-ec8d3b91c6e30208bf69ecbbc3abdbc0f9aeaa2b955162e46c089fd6e07f4fb0?context=explore)
 Source:
 
  - temurin-build(https://github.com/adoptium/temurin-build)

@@ -1,6 +1,6 @@
 # sdfactory
 
-![Version: 2.0.6](https://img.shields.io/badge/Version-2.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.6](https://img.shields.io/badge/AppVersion-2.0.6-informational?style=flat-square)
+![Version: 2.0.7](https://img.shields.io/badge/Version-2.0.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.0.7](https://img.shields.io/badge/AppVersion-2.0.7-informational?style=flat-square)
 
 Helm Charts for SD Factory application. Self-Description Factory component is responsible for the creation of Self Descriptions.
 
@@ -20,7 +20,7 @@ Helm Charts for SD Factory application. Self-Description Factory component is re
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"Always"` | Set the Image Pull Policy |
 | image.repository | string | `"ghcr.io/catenax-ng/tx-sd-factory/sdfactory"` | Image to use for deploying an application |
-| image.tag | string | `""` | Image tage is defined in chart appVersion. |
+| image.tag | string | `"2.0.7-TEST"` | Image tage is defined in chart appVersion. |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` | a reference to an Ingress Class resource that contains additional configuration including the name of the controller that should implement the class. |
@@ -49,6 +49,7 @@ Helm Charts for SD Factory application. Self-Description Factory component is re
 | sdfactory.secret.realm | string | `""` | Keycloak Realm detail |
 | sdfactory.secret.resource | string | `""` | Keycloak Resource detail |
 | securityContext.allowPrivilegeEscalation | bool | `false` | Controls whether a process can gain more privileges |
+| securityContext.runAsUser | int | `1000` |  |
 | service.port | int | `80` | Port details for sevice |
 | service.targetPort | int | `8080` | Container Port details for sevice |
 | service.type | string | `"ClusterIP"` | Type of service |

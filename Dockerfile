@@ -8,7 +8,7 @@ RUN mvn clean install -Dmaven.test.skip=true
 
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
-FROM eclipse-temurin:17.0.6_10-jdk-alpine
+FROM eclipse-temurin:17.0.6_10-jdk
 
 ARG USERNAME=sdfuser
 ARG USER_UID=1000

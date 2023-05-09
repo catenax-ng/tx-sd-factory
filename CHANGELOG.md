@@ -5,9 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
- - Updated README.md
- - a figure for arc42
+
  
+## [2.0.7] - 2023-05-09
+
+### Added
+- Added a section in README.md file that contains information about the used base image
+- Specified runAsUser in the deployment
+
+### Changed
+- Specified userid and groupid in docker image instead of just name
+
 
 ## [2.0.6] - 2023-05-02
 
