@@ -27,6 +27,7 @@ on:
       - 'charts/**'
     branches:
       - main
+      - 'qg4-check'
       
 jobs:
     lint-test:
