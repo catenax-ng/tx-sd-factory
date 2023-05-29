@@ -22,9 +22,13 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.signer.impl.local;
 
 import com.danubetech.keyformats.crypto.PrivateKeySigner;
 import com.danubetech.keyformats.crypto.impl.RSA_PS256_PrivateKeySigner;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import foundation.identity.jsonld.JsonLDException;
+import foundation.identity.jsonld.JsonLDObject;
 import info.weboftrust.ldsignatures.jsonld.LDSecurityKeywords;
 import info.weboftrust.ldsignatures.signer.JsonWebSignature2020LdSigner;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -41,21 +45,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.Security;
+import java.security.*;
 import java.util.Date;
 import java.util.Objects;
 
 
+@SuppressWarnings("unchecked")
 @Configuration
+@RequiredArgsConstructor
 public class LocalSignerFactoryImpl implements SignerFactory {
     private  PrivateKeySigner<KeyPair> privateKeySigner;
     @Value("${app.signer.privateKey}")
     private String privateKeyFileName;
     @Value("${app.signer.verificationMethod}")
     private URI verificationMethod;
+    private final ObjectMapper objectMapper;
 
     static {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
@@ -82,13 +86,18 @@ public class LocalSignerFactoryImpl implements SignerFactory {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public LDSigner ldSigner() {
-        return jsonLDObject -> {
-            var signer = new JsonWebSignature2020LdSigner(privateKeySigner);
-            signer.setCreated(new Date());
-            signer.setProofPurpose(LDSecurityKeywords.JSONLD_TERM_ASSERTIONMETHOD);
-            signer.setVerificationMethod(verificationMethod);
-            signer.setCreated(new Date());
-            return signer.sign(jsonLDObject);
+        return new LDSigner() {
+            @SuppressWarnings("Unchecked")
+            public <T extends JsonLDObject> T sign(T jsonLDObject) throws JsonLDException, GeneralSecurityException, IOException {
+                var signer = new JsonWebSignature2020LdSigner(privateKeySigner);
+                signer.setCreated(new Date());
+                signer.setProofPurpose(LDSecurityKeywords.JSONLD_TERM_ASSERTIONMETHOD);
+                signer.setVerificationMethod(verificationMethod);
+                signer.setCreated(new Date());
+                T copy = (T)objectMapper.convertValue(jsonLDObject, jsonLDObject.getClass());
+                signer.sign(copy);
+                return copy;
+            }
         };
     }
 }

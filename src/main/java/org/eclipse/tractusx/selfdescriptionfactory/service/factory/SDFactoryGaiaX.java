@@ -23,7 +23,6 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.factory;
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.danubetech.verifiablecredentials.VerifiablePresentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import foundation.identity.jsonld.JsonLDException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,30 +60,29 @@ public class SDFactoryGaiaX implements SDFactory {
     private final LDSigner ldSigner;
     private final PredicateGenerator predicateGenerator;
     private final CustodianWallet custodianWallet;
-    private final ObjectMapper objectMapper;
 
     @Override
     @PreAuthorize("hasAuthority(@securityRoles.createRole)")
     public void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException {
-        //var externalId = legalPersonSchema.getExternalId();
-        var claimsHolder = Optional.ofNullable(conversionService.convert(document, LegalPersonSD.class)).orElseThrow();
-        var credentialSubject = CredentialSubject.fromJsonObject(claimsHolder);
-        var verifiableCredential = VerifiableCredential.builder()
-                .issuer(issuer)
-                .issuanceDate(new Date())
-                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
-                .credentialSubject(credentialSubject)
-                .build();
-        ldSigner.sign(verifiableCredential);
-        var verifiablePresentation = VerifiablePresentation.builder()
-                .verifiableCredential(verifiableCredential)
-                .holder(URI.create(custodianWallet.getWalletData(((LegalPersonSchema)document).getHolder()).get("did").toString()))
-                .build();
-        var vp = objectMapper.convertValue(verifiablePresentation, verifiablePresentation.getClass());
-        ldSigner.sign(vp);
-        var strVc = vp.toJson(true);
-        System.out.println(strVc);
-        var verifier = predicateGenerator.getPredicate(verifiableCredential.getLdProof().getVerificationMethod());
-        System.out.println(verifier.test(verifiableCredential));
+        if (document instanceof LegalPersonSchema legalPersonSchema) {
+            var claimsHolder = Optional.ofNullable(conversionService.convert(document, LegalPersonSD.class)).orElseThrow();
+            var credentialSubject = CredentialSubject.fromJsonObject(claimsHolder);
+            var verifiableCredential = VerifiableCredential.builder()
+                    .issuer(issuer)
+                    .issuanceDate(new Date())
+                    .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
+                    .credentialSubject(credentialSubject)
+                    .build();
+            var signedVerifiableCredential = ldSigner.sign(verifiableCredential);
+            var verifiablePresentation = VerifiablePresentation.builder()
+                    .verifiableCredential(signedVerifiableCredential)
+                    .holder(URI.create(custodianWallet.getWalletData(legalPersonSchema.getHolder()).get("did").toString()))
+                    .build();
+            var signedVerifiablePresentation = ldSigner.sign(verifiablePresentation);
+            System.out.println(signedVerifiablePresentation.toJson(true));
+            var verifier = predicateGenerator.getPredicate(signedVerifiablePresentation.getLdProof().getVerificationMethod());
+            System.out.println(verifier.test(signedVerifiablePresentation));
+            System.out.println(verifier.test(signedVerifiableCredential));
+        }
     }
 }
