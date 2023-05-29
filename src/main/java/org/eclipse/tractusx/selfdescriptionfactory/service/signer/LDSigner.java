@@ -22,12 +22,11 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.signer;
 
 import foundation.identity.jsonld.JsonLDException;
 import foundation.identity.jsonld.JsonLDObject;
-import info.weboftrust.ldsignatures.LdProof;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 @FunctionalInterface
 public interface LDSigner {
-    LdProof sign (JsonLDObject jsonLDObject) throws JsonLDException, GeneralSecurityException, IOException;
+    <T extends JsonLDObject> T sign (T jsonLDObject) throws JsonLDException, GeneralSecurityException, IOException;
 }

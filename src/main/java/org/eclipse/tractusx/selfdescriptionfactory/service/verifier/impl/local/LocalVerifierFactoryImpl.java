@@ -45,6 +45,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 
 @Configuration
@@ -82,12 +83,13 @@ public class LocalVerifierFactoryImpl implements VerifierFactory {
                     publicKeyMap.get(verificationMethod)
             );
             var verifier = new JsonWebSignature2020LdVerifier(pkVerifier);
-            return new Object() {
+            return new Predicate<JsonLDObject>() {
+                @Override
                 @SneakyThrows
-                boolean test(JsonLDObject jsonLd) {
+                public boolean test(JsonLDObject jsonLd) {
                     return verifier.verify(objectMapper.convertValue(jsonLd, jsonLd.getClass()));
                 }
-            }::test;
+            };
         };
     }
 }

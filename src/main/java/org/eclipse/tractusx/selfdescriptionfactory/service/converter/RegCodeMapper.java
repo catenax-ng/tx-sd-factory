@@ -27,7 +27,7 @@ import java.util.Map;
 public class RegCodeMapper {
     public static Map<TypeEnum, String> getRegCodeMapper(String prefix) {
         return Map.of(
-                TypeEnum.TAXID, prefix.concat("taxID"),
+                TypeEnum.TAXID, prefix.concat("local"),
                 TypeEnum.VATID, prefix.concat("vatID"),
                 TypeEnum.EUID, prefix.concat("EUID"),
                 TypeEnum.EORI, prefix.concat("EORI"),
