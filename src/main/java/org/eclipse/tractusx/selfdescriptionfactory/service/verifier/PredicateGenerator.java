@@ -18,20 +18,14 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.vrel3;
+package org.eclipse.tractusx.selfdescriptionfactory.service.verifier;
 
-import lombok.experimental.Delegate;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
+import foundation.identity.jsonld.JsonLDObject;
 
-import java.util.Map;
+import java.net.URI;
+import java.util.function.Predicate;
 
-public class RegCodeMapper implements Map<TypeEnum, String>{
-    @Delegate
-    private final Map<TypeEnum, String> regNumMap = Map.of(
-            TypeEnum.TAXID, "gx:taxID",
-            TypeEnum.VATID, "gx:vatID",
-            TypeEnum.EUID, "gx:EUID",
-            TypeEnum.EORI, "gx:EORI",
-            TypeEnum.LEICODE, "gx:leiCode"
-    );
+@FunctionalInterface
+public interface PredicateGenerator {
+    Predicate<JsonLDObject> getPredicate(URI verificationMethod);
 }

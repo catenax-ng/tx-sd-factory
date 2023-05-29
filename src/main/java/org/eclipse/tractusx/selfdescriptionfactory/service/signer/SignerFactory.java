@@ -18,13 +18,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.service.signer;
 
-import foundation.identity.jsonld.JsonLDException;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
-public interface SDFactory {
-    void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException;
+public interface SignerFactory {
+    LDSigner ldSigner();
 }

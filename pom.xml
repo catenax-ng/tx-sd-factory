@@ -81,18 +81,18 @@
         <dependency>
             <groupId>com.danubetech</groupId>
             <artifactId>verifiable-credentials-java</artifactId>
-            <version>1.0.0</version>
-            <scope>compile</scope>
+            <version>1.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.70</version>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
+            <artifactId>protobuf-javalite</artifactId>
             <version>3.22.3</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.5</version>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
@@ -203,28 +203,6 @@
                             <supportingFilesToGenerate>
                                 ApiUtil.java
                             </supportingFilesToGenerate>
-                            <configOptions>
-                                <useSpringBoot3>true</useSpringBoot3>
-                                <useJakartaEe>true</useJakartaEe>
-                                <delegatePattern>true</delegatePattern>
-                                <openApiNullable>false</openApiNullable>
-                                <dateLibrary>java8</dateLibrary>
-                                <java8>true</java8>
-                                <useBeanValidation>true</useBeanValidation>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>api-22.10</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/static/SDFactoryApi-v22.10.yml</inputSpec>
-                            <generatorName>spring</generatorName>
-                            <modelPackage>org.eclipse.tractusx.selfdescriptionfactory.model.v2210</modelPackage>
-                            <generateApis>false</generateApis>
-                            <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <useJakartaEe>true</useJakartaEe>

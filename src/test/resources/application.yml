@@ -43,10 +43,18 @@ springdoc:
 app:
   build:
     version: ^project.version^
+  signer:
+    privateKey: prk.ss.pem
+    alg: PS256
+    verificationMethod: did:web:compliance.lab.gaia-x.eu
+    issuer: http://gaiax.de
+  verifier: '{
+    "did:web:compliance.lab.gaia-x.eu": "cert.ss.pem"
+  }'
   verifiableCredentials:
     durationDays: 90
     schema2210Url: https://github.com/catenax-ng/tx-sd-factory/raw/clearing-house/src/main/resources/verifiablecredentials.jsonld/sd-document-v22.10.jsonld
-    gaia-x-participant-schema: https://registry.lab.gaia-x.eu/development/api/trusted-schemas-registry/v2/schemas
+    gaia-x-participant-schema: https://registry.lab.gaia-x.eu//development/api/trusted-schemas-registry/v2/schemas/gax-trust-framework
     gaia-x-service-schema: https://gaia-x.gitlab.io/gaia-x-community/gaia-x-self-descriptions/service/ontology.json
     catena-x-schema: https://github.com/catenax-ng/tx-sd-factory/raw/clearing-house/src/main/resources/verifiablecredentials.jsonld/catenax.jsonld
   usersDetails:

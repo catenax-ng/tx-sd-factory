@@ -18,25 +18,32 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.service.factory;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import foundation.identity.jsonld.JsonLDUtils;
+import com.danubetech.verifiablecredentials.VerifiablePresentation;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import foundation.identity.jsonld.JsonLDException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
+import org.eclipse.tractusx.selfdescriptionfactory.dto.LegalPersonSD;
+import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.LegalPersonSchema;
+import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
+import org.eclipse.tractusx.selfdescriptionfactory.service.signer.LDSigner;
+import org.eclipse.tractusx.selfdescriptionfactory.service.verifier.PredicateGenerator;
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.URI;
+import java.security.GeneralSecurityException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Optional;
 
 /**
@@ -45,34 +52,39 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Profile("catena-x-ctx")
-public class SDFactoryCatenaX implements SDFactory{
+public class SDFactoryGaiaX implements SDFactory {
     @Value("${app.verifiableCredentials.durationDays:90}")
     private int duration;
-    private final CustodianWallet custodianWallet;
+    @Value("${app.signer.issuer}")
+    private URI issuer;
     private final ConversionService conversionService;
-    private final ClearingHouse clearingHouse;
+    private final LDSigner ldSigner;
+    private final PredicateGenerator predicateGenerator;
+    private final CustodianWallet custodianWallet;
+    private final ObjectMapper objectMapper;
 
     @Override
     @PreAuthorize("hasAuthority(@securityRoles.createRole)")
-    public void createVC(Object document) {
-        var claimsHolder = Optional.ofNullable(conversionService.convert(document, Claims.class)).orElseThrow();
-        var claims = new LinkedHashMap<>(claimsHolder.claims());
-        var holder = claims.remove("holder");
-        var issuer = claims.remove("issuer");
-        var type = claims.get("type");
-        var externalId = claims.remove("externalId");
-        var credentialSubject = CredentialSubject.fromJsonObject(claims);
+    public void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException {
+        //var externalId = legalPersonSchema.getExternalId();
+        var claimsHolder = Optional.ofNullable(conversionService.convert(document, LegalPersonSD.class)).orElseThrow();
+        var credentialSubject = CredentialSubject.fromJsonObject(claimsHolder);
         var verifiableCredential = VerifiableCredential.builder()
-                .contexts(claimsHolder.vocabularies())
+                .issuer(issuer)
                 .issuanceDate(new Date())
                 .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
                 .credentialSubject(credentialSubject)
                 .build();
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "issuerIdentifier", issuer);
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "holderIdentifier", holder);
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "type", type);
-        var vc = custodianWallet.getSignedVC(verifiableCredential);
-        clearingHouse.sendToClearingHouse(vc, externalId.toString());
+        ldSigner.sign(verifiableCredential);
+        var verifiablePresentation = VerifiablePresentation.builder()
+                .verifiableCredential(verifiableCredential)
+                .holder(URI.create(custodianWallet.getWalletData(((LegalPersonSchema)document).getHolder()).get("did").toString()))
+                .build();
+        var vp = objectMapper.convertValue(verifiablePresentation, verifiablePresentation.getClass());
+        ldSigner.sign(vp);
+        var strVc = vp.toJson(true);
+        System.out.println(strVc);
+        var verifier = predicateGenerator.getPredicate(verifiableCredential.getLdProof().getVerificationMethod());
+        System.out.println(verifier.test(verifiableCredential));
     }
 }

@@ -18,13 +18,20 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 
-import foundation.identity.jsonld.JsonLDException;
+import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.util.Map;
 
-public interface SDFactory {
-    void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException;
+public class RegCodeMapper {
+    public static Map<TypeEnum, String> getRegCodeMapper(String prefix) {
+        return Map.of(
+                TypeEnum.TAXID, prefix.concat("taxID"),
+                TypeEnum.VATID, prefix.concat("vatID"),
+                TypeEnum.EUID, prefix.concat("EUID"),
+                TypeEnum.EORI, prefix.concat("EORI"),
+                TypeEnum.LEICODE, prefix.concat("leiCode")
+        );
+    }
 }

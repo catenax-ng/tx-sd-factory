@@ -20,11 +20,25 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service;
 
-import foundation.identity.jsonld.JsonLDException;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.tractusx.selfdescriptionfactory.api.vrel3.ApiApiDelegate;
+import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+@Service
+@RequiredArgsConstructor
+public class ControllerDelegate implements ApiApiDelegate {
+    private final SDFactory sdFactory;
 
-public interface SDFactory {
-    void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException;
+    public ResponseEntity<Void> selfdescriptionPost(SelfdescriptionPostRequest selfdescriptionPostRequest) {
+        try {
+            sdFactory.createVC(selfdescriptionPostRequest);
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

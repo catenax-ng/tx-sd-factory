@@ -18,23 +18,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.vrel3;
+package org.eclipse.tractusx.selfdescriptionfactory.service.signer;
 
-import lombok.RequiredArgsConstructor;
-import org.eclipse.tractusx.selfdescriptionfactory.api.vrel3.ApiApiDelegate;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
-import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import foundation.identity.jsonld.JsonLDException;
+import foundation.identity.jsonld.JsonLDObject;
+import info.weboftrust.ldsignatures.LdProof;
 
-@Service
-@RequiredArgsConstructor
-public class ApiDelegate implements ApiApiDelegate {
-    private final SDFactory sdFactory;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
-    public ResponseEntity<Void> selfdescriptionPost(SelfdescriptionPostRequest selfdescriptionPostRequest) {
-        sdFactory.createVC(selfdescriptionPostRequest);
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
+@FunctionalInterface
+public interface LDSigner {
+    LdProof sign (JsonLDObject jsonLDObject) throws JsonLDException, GeneralSecurityException, IOException;
 }

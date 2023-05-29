@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.vrel3;
+package org.eclipse.tractusx.selfdescriptionfactory.service.converter.vrel3;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.tractusx.selfdescriptionfactory.Utils;
@@ -27,9 +27,10 @@ import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumbe
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.ServiceOfferingSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.Claims;
+import org.eclipse.tractusx.selfdescriptionfactory.service.converter.TermsAndConditionsHelper;
+import org.eclipse.tractusx.selfdescriptionfactory.service.converter.RegCodeMapper;
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
@@ -45,11 +46,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Component
-@Profile("gaia-x-ctx")
 @RequiredArgsConstructor
-public class SDocumentConverterGaiaX extends SDocumentConverter implements Converter<SelfdescriptionPostRequest, Claims> {
+public class SDocumentConverterGaiaX implements Converter<SelfdescriptionPostRequest, Claims> {
 
     private final CustodianWallet custodianWallet;
+    private final TermsAndConditionsHelper termsAndConditionsHelper;
     @Value("${app.verifiableCredentials.gaia-x-participant-schema}")
     private String gaiaxParticipantSchema;
     @Value("${app.verifiableCredentials.gaia-x-service-schema}")
@@ -57,7 +58,7 @@ public class SDocumentConverterGaiaX extends SDocumentConverter implements Conve
     @Value("${app.verifiableCredentials.catena-x-schema}")
     private String catenaxSchema;
 
-    private Map<RegistrationNumberSchema.TypeEnum, String> regCodeMapper = new RegCodeMapper();
+    private Map<RegistrationNumberSchema.TypeEnum, String> regCodeMapper = RegCodeMapper.getRegCodeMapper("gx:");
 
     @Override
     public Claims convert(@NonNull SelfdescriptionPostRequest source) {
@@ -121,7 +122,7 @@ public class SDocumentConverterGaiaX extends SDocumentConverter implements Conve
             }
         };
         Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getAggregationOf(), Utils::uriFromStr).ifPresent(setter.set("gx-service:aggregationOf"));
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getTermsAndConditions(), this::getTermsAndConditions).ifPresent(setter.set("gx-service:termsAndConditions"));
+        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getTermsAndConditions(), url -> termsAndConditionsHelper.getTermsAndConditions(url, "gx-service:")).ifPresent(setter.set("gx-service:termsAndConditions"));
         Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getPolicies(), Function.identity()).ifPresent(setter.set("gx-service:policy"));
         return res;
     }
