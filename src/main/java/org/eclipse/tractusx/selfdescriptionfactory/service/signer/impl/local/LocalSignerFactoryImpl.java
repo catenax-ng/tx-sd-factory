@@ -28,6 +28,7 @@ import foundation.identity.jsonld.JsonLDObject;
 import info.weboftrust.ldsignatures.jsonld.LDSecurityKeywords;
 import info.weboftrust.ldsignatures.signer.JsonWebSignature2020LdSigner;
 import jakarta.annotation.PostConstruct;
+import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -69,17 +70,16 @@ public class LocalSignerFactoryImpl implements SignerFactory {
 
     @PostConstruct
     public void init() throws IOException, InvalidAlgorithmParameterException {
-        try (Reader reader = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(privateKeyFileName)))) {
-            PEMParser pemParser = new PEMParser(reader);
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-            PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
-            PrivateKey prk = converter.getPrivateKey(privateKeyInfo);
-            if (!prk.getAlgorithm().equals("RSA")) {
-                throw new InvalidAlgorithmParameterException("RSA key is required");
-            }
-            KeyPair kp = new KeyPair(null, prk);
-            privateKeySigner = new RSA_PS256_PrivateKeySigner(kp);
+        @Cleanup Reader reader = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(privateKeyFileName)));
+        PEMParser pemParser = new PEMParser(reader);
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
+        PrivateKey prk = converter.getPrivateKey(privateKeyInfo);
+        if (!prk.getAlgorithm().equals("RSA")) {
+            throw new InvalidAlgorithmParameterException("RSA key is required");
         }
+        KeyPair kp = new KeyPair(null, prk);
+        privateKeySigner = new RSA_PS256_PrivateKeySigner(kp);
     }
 
     @Override
