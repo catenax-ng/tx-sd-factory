@@ -1,3 +1,23 @@
+/********************************************************************************
+ * Copyright (c) 2021,2022 T-Systems International GmbH
+ * Copyright (c) 2021,2022 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License, Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ ********************************************************************************/
+
 package org.eclipse.tractusx.selfdescriptionfactory;
 
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianClient;
@@ -58,4 +78,33 @@ public class SignerTest {
                 ).andExpect(status().isAccepted())
                  .andReturn();
     }
+
+    @Test
+    @WithMockUser(username = "fulladmin", authorities={"add_self_descriptions"})
+    public void testServiceOffering() throws Exception {
+        given(custodianClient.getWalletData("BPNL000000000000"))
+                .willReturn(
+                        Map.of( "did", "did:test:BPNL000000000000",
+                                "name", "Test Company"
+                        )
+                );
+        var payload = """
+        {
+          "externalId": "ID01234-123-4321",
+          "type": "ServiceOffering",
+          "holder": "BPNL000000000000",
+          "issuer": "CAXSDUMMYCATENAZZ",
+          "providedBy": "https://participant.url",
+          "aggregationOf": "https://aggr1.url, https://aggr2.url",
+          "termsAndConditions": "https://raw.githubusercontent.com/eclipse-tractusx/sd-factory/main/LICENSE",
+          "policies": "policy1, policy2"
+        }
+        """;
+        var result = mockMvc.perform(MockMvcRequestBuilders.post("/api/rel3/selfdescription")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload)
+                ).andExpect(status().isAccepted())
+                .andReturn();
+    }
+
 }

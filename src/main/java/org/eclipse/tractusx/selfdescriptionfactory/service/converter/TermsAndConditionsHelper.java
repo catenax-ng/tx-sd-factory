@@ -20,6 +20,7 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 
+import com.google.common.collect.ImmutableMap;
 import io.vavr.control.Try;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.tractusx.selfdescriptionfactory.Utils;
@@ -40,7 +41,7 @@ public class TermsAndConditionsHelper {
         return Try.of(() -> new URL(urlStr))
                 .mapTry(url -> Utils.getConnectionIfRedirected(url, maxRedirect))
                 .flatMap(urlConnection -> Try.withResources(urlConnection::getInputStream).of(DigestUtils::sha256Hex))
-                .map(sha -> Map.of(prefix.concat("license"), urlStr, prefix.concat("hash"), (Object) sha))
+                .map(sha -> ImmutableMap.of(prefix.concat("license"), urlStr, prefix.concat("hash"), (Object) sha))
                 .recoverWith(Utils.mapFailure(err ->
                                 new ResponseStatusException(
                                         HttpStatus.BAD_REQUEST,
