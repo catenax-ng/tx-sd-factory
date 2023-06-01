@@ -55,7 +55,7 @@ import java.util.Objects;
 @Configuration
 @RequiredArgsConstructor
 public class LocalSignerFactoryImpl implements SignerFactory {
-    private  PrivateKeySigner<KeyPair> privateKeySigner;
+    private KeyPair keyPair;
     @Value("${app.signer.privateKey}")
     private String privateKeyFileName;
     @Value("${app.signer.verificationMethod}")
@@ -78,8 +78,7 @@ public class LocalSignerFactoryImpl implements SignerFactory {
         if (!prk.getAlgorithm().equals("RSA")) {
             throw new InvalidAlgorithmParameterException("RSA key is required");
         }
-        KeyPair kp = new KeyPair(null, prk);
-        privateKeySigner = new RSA_PS256_PrivateKeySigner(kp);
+        keyPair = new KeyPair(null, prk);
     }
 
     @Override
@@ -89,6 +88,7 @@ public class LocalSignerFactoryImpl implements SignerFactory {
         return new LDSigner() {
             @SuppressWarnings("Unchecked")
             public <T extends JsonLDObject> T sign(T jsonLDObject) throws JsonLDException, GeneralSecurityException, IOException {
+                PrivateKeySigner<KeyPair> privateKeySigner = new RSA_PS256_PrivateKeySigner(keyPair);
                 var signer = new JsonWebSignature2020LdSigner(privateKeySigner);
                 signer.setCreated(new Date());
                 signer.setProofPurpose(LDSecurityKeywords.JSONLD_TERM_ASSERTIONMETHOD);

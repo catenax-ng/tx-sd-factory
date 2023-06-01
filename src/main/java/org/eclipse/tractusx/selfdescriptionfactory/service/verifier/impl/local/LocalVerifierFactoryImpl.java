@@ -64,9 +64,7 @@ public class LocalVerifierFactoryImpl implements VerifierFactory {
                 CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
                 var certs = certFactory.generateCertificates(certStream);
                 if (certs.size() == 1) {
-                    var cert = certs.iterator().next();
-                    var pk = cert.getPublicKey();
-                    if (pk instanceof RSAPublicKey rsaPublicKey) {
+                    if (certs.iterator().next().getPublicKey() instanceof RSAPublicKey rsaPublicKey) {
                         publicKeyMap.put(URI.create(conf.getKey()), rsaPublicKey);
                     }
                 }
@@ -83,7 +81,7 @@ public class LocalVerifierFactoryImpl implements VerifierFactory {
                     publicKeyMap.get(verificationMethod)
             );
             var verifier = new JsonWebSignature2020LdVerifier(pkVerifier);
-            return new Predicate<JsonLDObject>() {
+            return new Predicate<>() {
                 @Override
                 @SneakyThrows
                 public boolean test(JsonLDObject jsonLd) {
