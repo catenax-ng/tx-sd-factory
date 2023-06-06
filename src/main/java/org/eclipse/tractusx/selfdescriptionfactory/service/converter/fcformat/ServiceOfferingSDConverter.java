@@ -47,27 +47,47 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
         serviceOfferingSD.put("@context", ImmutableMap.of(
                 "gx", "https://w3id.org/gaia-x/gax-trust-framework#",
                 "gax-core", "https://w3id.org/gaia-x/core#",
-                "ctxsd", "https://w3id.org/catena-x/core#")
+                "ctxsd", "https://w3id.org/catena-x/core#",
+                "xsd", "http://www.w3.org/2001/XMLSchema#"
+                )
         );
         serviceOfferingSD.put("@id", custodianWallet.getWalletData(serviceOfferingSchema.getHolder()).get("did"));
         serviceOfferingSD.put("@type", "gx:ServiceOffering");
         serviceOfferingSD.put("ctxsd:connector-url", "https://connector-placeholder.net");
         //WARNING! In Trust Framework specs it is called 'providedBy'
         //but in FC it is referred as 'gax-core:offeredBy'
-        serviceOfferingSD.put("gax-core:offeredBy", serviceOfferingSchema.getProvidedBy());
+        serviceOfferingSD.put("gax-core:offeredBy", ImmutableMap.of(
+                "@id", serviceOfferingSchema.getProvidedBy())
+        );
         serviceOfferingSD.put("gx:dataAccountExport", ImmutableMap.of(
                 "gx:requestType", "email",
                 "gx:accessType", "digital",
                 "gx:formatType", "json")
         );
         var setter = new Object() {
-            <T> Consumer<T> set(String fieldName) {
-                return t -> serviceOfferingSD.put(fieldName, t);
+            Consumer<Object> set(String fieldName) {
+                return any -> serviceOfferingSD.put(fieldName, any);
             }
         };
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getAggregationOf(), Utils::uriFromStr).ifPresent(setter.set("gx:aggregationOf"));
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getTermsAndConditions(), url -> termsAndConditionsHelper.getTermsAndConditions(url, "gx:")).ifPresent(setter.set("gx:termsAndConditions"));
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getPolicies(), Function.identity()).ifPresent(setter.set("gx:policy"));
+        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getAggregationOf(), Utils::uriFromStr)
+                .map(l -> l.size() == 1 ? l.iterator().next() : l)
+                .ifPresent(setter.set("gx:aggregationOf"));
+        setter.set("gx:termsAndConditions").accept(
+                Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getTermsAndConditions(), url -> termsAndConditionsHelper.getTermsAndConditions(url, "gx:"))
+                    .map(l -> l.size() == 1 ? l.iterator().next() : l)
+                    .map(Object.class::cast)
+                    .orElse(ImmutableMap.of(
+                            "gx:content", ImmutableMap.of(
+                                    "@type", "xsd:anyURI",
+                                    "@value", "http://example.org/tac-placeholder"),
+                            "gx:hash", "1234")
+                    )
+        );
+        setter.set("gx:policy").accept(
+                Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getPolicies(), Function.identity())
+                        .map(Object.class::cast)
+                        .orElse("policy_placeholder")
+        );
         return serviceOfferingSD;
     }
 }
