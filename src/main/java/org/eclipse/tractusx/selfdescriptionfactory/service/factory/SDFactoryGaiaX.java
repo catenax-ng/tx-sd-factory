@@ -31,6 +31,8 @@ import org.eclipse.tractusx.selfdescriptionfactory.dto.ServiceOfferingSD;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.LegalPersonSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.ServiceOfferingSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
+import org.eclipse.tractusx.selfdescriptionfactory.service.fc.FederatedCatalogRemote;
+import org.eclipse.tractusx.selfdescriptionfactory.service.fc.SDType;
 import org.eclipse.tractusx.selfdescriptionfactory.service.signer.LDSigner;
 import org.eclipse.tractusx.selfdescriptionfactory.service.verifier.PredicateGenerator;
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
@@ -65,18 +67,22 @@ public class SDFactoryGaiaX implements SDFactory {
     private final LDSigner ldSigner;
     private final PredicateGenerator predicateGenerator;
     private final CustodianWallet custodianWallet;
+    private final FederatedCatalogRemote federatedCatalogRemote;
 
     @Override
     @PreAuthorize("hasAuthority(@securityRoles.createRole)")
     public void createVC(Object document) throws JsonLDException, GeneralSecurityException, IOException {
         Map<String, Object> claimsHolder;
         String holder;
+        SDType sdType;
         if (document instanceof LegalPersonSchema legalPersonSchema) {
             claimsHolder = Optional.ofNullable(conversionService.convert(document, LegalPersonSD.class)).orElseThrow();
             holder = legalPersonSchema.getHolder();
+            sdType = SDType.LEGAL_PERSON;
         } else if (document instanceof ServiceOfferingSchema serviceOfferingSchema) {
             claimsHolder = Optional.ofNullable(conversionService.convert(document, ServiceOfferingSD.class)).orElseThrow();
             holder = serviceOfferingSchema.getHolder();
+            sdType = SDType.SERVICE_OFFERING;
         } else {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -100,5 +106,7 @@ public class SDFactoryGaiaX implements SDFactory {
         var verifier = predicateGenerator.getPredicate(signedVerifiablePresentation.getLdProof().getVerificationMethod());
         System.out.println(verifier.test(signedVerifiablePresentation));
         System.out.println(verifier.test(signedVerifiableCredential));
+        if (sdType.equals(SDType.LEGAL_PERSON)) federatedCatalogRemote.uploadLegalPerson(signedVerifiableCredential);
+        if (sdType.equals(SDType.SERVICE_OFFERING)) federatedCatalogRemote.uploadServiceOffering(signedVerifiableCredential);
     }
 }
