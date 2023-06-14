@@ -20,8 +20,12 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory;
 
+import com.danubetech.verifiablecredentials.VerifiablePresentation;
+import org.eclipse.tractusx.selfdescriptionfactory.service.fc.FederatedCatalogRemote;
+import org.eclipse.tractusx.selfdescriptionfactory.service.verifier.PredicateGenerator;
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +38,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -42,9 +47,14 @@ public class SignerTest {
 
     @MockBean
     CustodianClient custodianClient;
+    @MockBean
+    FederatedCatalogRemote federatedCatalog;
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    PredicateGenerator predicateGenerator;
+
 
     @Test
     @WithMockUser(username = "fulladmin", authorities={"add_self_descriptions"})
@@ -77,6 +87,13 @@ public class SignerTest {
                         .content(payload)
                 ).andExpect(status().isAccepted())
                  .andReturn();
+        final ArgumentCaptor<VerifiablePresentation> captor = ArgumentCaptor.forClass(VerifiablePresentation.class);
+        verify(federatedCatalog).uploadLegalPerson(captor.capture());
+        var sdocument = captor.getValue();
+        System.out.println(sdocument.toJson(true));
+        var verifier = predicateGenerator.getPredicate(sdocument.getLdProof().getVerificationMethod());
+        System.out.println(verifier.test(sdocument));
+        System.out.println(verifier.test(sdocument.getVerifiableCredential()));
     }
 
     @Test
@@ -105,6 +122,13 @@ public class SignerTest {
                         .content(payload)
                 ).andExpect(status().isAccepted())
                 .andReturn();
+        final ArgumentCaptor<VerifiablePresentation> captor = ArgumentCaptor.forClass(VerifiablePresentation.class);
+        verify(federatedCatalog).uploadServiceOffering(captor.capture());
+        var sdocument = captor.getValue();
+        System.out.println(sdocument.toJson(true));
+        var verifier = predicateGenerator.getPredicate(sdocument.getLdProof().getVerificationMethod());
+        System.out.println(verifier.test(sdocument));
+        System.out.println(verifier.test(sdocument.getVerifiableCredential()));
     }
 
 }

@@ -34,7 +34,6 @@ import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
 import org.eclipse.tractusx.selfdescriptionfactory.service.fc.FederatedCatalogRemote;
 import org.eclipse.tractusx.selfdescriptionfactory.service.fc.SDType;
 import org.eclipse.tractusx.selfdescriptionfactory.service.signer.LDSigner;
-import org.eclipse.tractusx.selfdescriptionfactory.service.verifier.PredicateGenerator;
 import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
@@ -65,7 +64,6 @@ public class SDFactoryGaiaX implements SDFactory {
     private URI issuer;
     private final ConversionService conversionService;
     private final LDSigner ldSigner;
-    private final PredicateGenerator predicateGenerator;
     private final CustodianWallet custodianWallet;
     private final FederatedCatalogRemote federatedCatalogRemote;
 
@@ -102,11 +100,7 @@ public class SDFactoryGaiaX implements SDFactory {
                 .holder(URI.create(custodianWallet.getWalletData(holder).get("did").toString()))
                 .build();
         var signedVerifiablePresentation = ldSigner.sign(verifiablePresentation);
-        System.out.println(signedVerifiablePresentation.toJson(true));
-        var verifier = predicateGenerator.getPredicate(signedVerifiablePresentation.getLdProof().getVerificationMethod());
-        System.out.println(verifier.test(signedVerifiablePresentation));
-        System.out.println(verifier.test(signedVerifiableCredential));
-        if (sdType.equals(SDType.LEGAL_PERSON)) federatedCatalogRemote.uploadLegalPerson(signedVerifiableCredential);
-        if (sdType.equals(SDType.SERVICE_OFFERING)) federatedCatalogRemote.uploadServiceOffering(signedVerifiableCredential);
+        if (sdType.equals(SDType.LEGAL_PERSON)) federatedCatalogRemote.uploadLegalPerson(signedVerifiablePresentation);
+        if (sdType.equals(SDType.SERVICE_OFFERING)) federatedCatalogRemote.uploadServiceOffering(signedVerifiablePresentation);
     }
 }
