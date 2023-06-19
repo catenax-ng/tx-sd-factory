@@ -71,12 +71,11 @@ app:
       clientId: sa-cl2-02
       clientSecret: secret
     federatedCatalog:
-      legalPersonUri: http://fc-server.gxfs.dev/participants
-      serviceOfferingUri: http://fcs.dev.demo.catena-x.net/self-descriptions
-      serverUrl: https://centralidp.int.demo.catena-x.net/auth
-      realm: CX-Central
-      clientId: sa-cl2-02
-      clientSecret: secret
+      uri: http://fcs.dev.demo.catena-x.net
+      serverUrl: http://fckeycloack.dev.demo.catena-x.net/realms/gaia-x/protocol/openid-connect/token
+      realm: gaia-x
+      clientId: federated-catalogue
+      clientSecret:
   security:
     createRole: add_self_descriptions
 logging:

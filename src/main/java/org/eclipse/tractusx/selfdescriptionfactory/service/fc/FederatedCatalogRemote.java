@@ -30,19 +30,19 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class FederatedCatalogRemote extends FederatedCatalog {
-    private final LegalPersonClient legalPersonClient;
-    private final ServiceOfferingClient serviceOfferingClient;
+    private final FederatedCatalogClient federatedCatalogClient;
+
 
     @Override
     @SneakyThrows
     public void uploadLegalPerson(VerifiablePresentation payload, String token) {
-        legalPersonClient.uploadLegalPerson(payload);
+        federatedCatalogClient.uploadLegalPerson(payload);
     }
 
     @Override
     @SneakyThrows
     public void uploadServiceOffering(VerifiablePresentation payload, String token) {
-        serviceOfferingClient.uploadServiceOffering(payload);
+        federatedCatalogClient.uploadServiceOffering(payload);
     }
 
 

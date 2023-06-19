@@ -26,8 +26,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
-@FeignClient(name = "serviceOfferingFC", url = "${app.usersDetails.federatedCatalog.serviceOfferingUri}")
-public interface ServiceOfferingClient {
-    @PostMapping
+@FeignClient(name = "federatedCatalog", url = "${app.usersDetails.federatedCatalog.uri}")
+public interface FederatedCatalogClient {
+    @PostMapping("/participants")
+    void uploadLegalPerson(@RequestBody VerifiablePresentation verifiablePresentation);
+
+    @PostMapping("/self-descriptions")
     void uploadServiceOffering(@RequestBody VerifiablePresentation verifiablePresentation);
 }
