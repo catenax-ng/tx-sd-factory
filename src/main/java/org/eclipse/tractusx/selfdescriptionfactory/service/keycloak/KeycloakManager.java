@@ -60,7 +60,18 @@ public class KeycloakManager {
         var details = technicalUsersDetails.getUsersDetails().get(name);
         if (Objects.isNull(details))
             return null;
-        token = keycloakClient.getTokens(URI.create(details.serverUrl()), details.realm(), details.clientId(), details.clientSecret()).get("access_token").toString();
+        var param = new HashMap<String, String>();
+        if (details.username() == null || details.username().isBlank()) {
+            param.put("grant_type", "client_credentials");
+        } else {
+            param.put("grant_type", "password");
+            param.put("username", details.username());
+            param.put("password", details.password());
+        }
+        param.put("client_id", details.clientId());
+        param.put("client_secret", details.clientSecret());
+        param.put("scope", "openid");
+        token = keycloakClient.getTokens(URI.create(details.serverUrl()), details.realm(), param).get("access_token").toString();
         tokenMap.put(name, token);
         return token;
     }
