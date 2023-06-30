@@ -53,6 +53,7 @@ public class CustodianWallet {
 
     public VerifiableCredential getSignedVC(VerifiableCredential objToSign) {
         String token = Try.of(() -> keycloakManager.getKeycloack("custodianWallet").tokenManager().getAccessTokenString())
+                .onFailure(Throwable::printStackTrace)
                 .getOrElseThrow(err -> new ResponseStatusException(
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         "Error when get Access Token for the Custodian Wallet",

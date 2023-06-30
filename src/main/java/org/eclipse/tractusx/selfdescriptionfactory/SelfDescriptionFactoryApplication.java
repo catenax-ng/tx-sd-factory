@@ -20,6 +20,10 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.tractusx.selfdescriptionfactory.config.TechnicalUsersDetails;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -30,7 +34,16 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class })
 @ComponentScan(nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class)
 @ConfigurationPropertiesScan
+@Slf4j
 public class SelfDescriptionFactoryApplication {
+
+    @Autowired
+    private TechnicalUsersDetails technicalUsersDetails;
+
+    @PostConstruct
+    private void init(){
+        technicalUsersDetails.getUsersDetails().forEach( (key, ud) -> log.debug("key = {}, ud = [ {}, {}, {}, {}, {}, {} ]", key, ud.serverUrl(), ud.realm(), ud.username(), ud.password(), ud.clientId(), ud.clientSecret()));
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(SelfDescriptionFactoryApplication.class, args);
