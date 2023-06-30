@@ -47,14 +47,14 @@ ingress:
       }
 
   hosts:
-    - host: "sdfactory.stable.demo.catena-x.net"
+    - host: "sdfactory1.stable.demo.catena-x.net"
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - tlsName: sdfactory.stable.demo.catena-x.net-tls
+    - tlsName: sdfactory1.stable.demo.catena-x.net-tls
       hosts:
-        - sdfactory.stable.demo.catena-x.net
+        - sdfactory1.stable.demo.catena-x.net
 
 
 sdfactory:
