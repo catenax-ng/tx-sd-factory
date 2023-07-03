@@ -66,8 +66,8 @@ public class SDFactory {
                 .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
                 .credentialSubject(credentialSubject)
                 .build();
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "issuerIdentifier", issuer);
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "holderIdentifier", holder);
+        JsonLDUtils.jsonLdAdd(verifiableCredential, "issuer", issuer);
+        //JsonLDUtils.jsonLdAdd(verifiableCredential, "holderIdentifier", holder);
         JsonLDUtils.jsonLdAdd(verifiableCredential, "type", type);
         var vc = custodianWallet.getSignedVC(verifiableCredential);
         clearingHouse.sendToClearingHouse(vc, externalId.toString());
