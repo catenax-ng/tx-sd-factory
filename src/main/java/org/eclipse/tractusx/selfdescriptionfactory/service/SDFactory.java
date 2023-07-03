@@ -32,11 +32,13 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A service to create and manipulate of Self-Description document
@@ -63,6 +65,7 @@ public class SDFactory {
         var verifiableCredential = VerifiableCredential.builder()
                 .context(claimsHolder.vocabulary())
                 .issuanceDate(new Date())
+                .id(URI.create(UUID.randomUUID().toString()))
                 .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
                 .credentialSubject(credentialSubject)
                 .build();
