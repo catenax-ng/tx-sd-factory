@@ -37,10 +37,10 @@ public abstract class FederatedCatalog {
 
 
     public void uploadServiceOffering(VerifiablePresentation verifiableCredential) {
-        uploadLegalPerson(verifiableCredential, "Bearer ".concat(keycloakManager.getToken("federatedCatalog")));
+        uploadServiceOffering(verifiableCredential, "Bearer ".concat(keycloakManager.getToken("federatedCatalog")));
     }
 
     public void uploadLegalPerson(VerifiablePresentation verifiableCredential) {
-        uploadServiceOffering(verifiableCredential, "Bearer ".concat(keycloakManager.getToken("federatedCatalog")));
+        uploadLegalPerson(verifiableCredential, "Bearer ".concat(keycloakManager.getToken("federatedCatalog")));
     }
 }

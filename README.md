@@ -271,5 +271,19 @@ Source:
 
 [Pre-22.4 schema, AKA 1.06]: src/main/resources/static/SDFactoryApi-vRel3.yml
 [Trust Framework]: https://gitlab.com/gaia-x/policy-rules-committee/trust-framework
-[Trust Framework V.22.10]: https://gitlab.com/gaia-x/policy-rules-committee/trust-framework/-/tree/22.10
+[Trust Framework V.22.10]: https://gitlab.com/gaia-x/policy-rules-committee/trust-f
+
+## Federated Catalogue
+Integration with Federated Catalogue was added to SD-Factory. 
+Currently, it is deployed in DEV environment.
+
+1) Local signer factory is added to sign SD documents and store private key.
+   Signer project - https://gitlab.com/gaia-x/data-infrastructure-federation-services/cat/fc-tools/signer)
+2) When SD document is created, if it is one of the 2 types - LegalPerson or ServiceOffering - it is
+   converted to the standard of shacleshape of FC.
+3) Federated Catalogue client is added to make upload possible after conversion.
+4) Converted SD document is sent to Federated Catalogue. 
+   (Currently we have successful upload with ServiceOffering, but some problems with LegalPerson because of issuer field)
+
+
 
