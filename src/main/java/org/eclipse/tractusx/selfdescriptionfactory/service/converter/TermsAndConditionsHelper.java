@@ -18,30 +18,30 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.vrel3;
+package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 
+import com.google.common.collect.ImmutableMap;
 import io.vavr.control.Try;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.eclipse.tractusx.selfdescriptionfactory.Utils;
-import org.eclipse.tractusx.selfdescriptionfactory.model.v2210.TermsAndConditionsSchema;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 
-public class SDocumentConverter {
+@Component
+public class TermsAndConditionsHelper {
     @Value("${app.maxRedirect:5}")
     private int maxRedirect;
 
-    protected TermsAndConditionsSchema getTermsAndConditions(String urlStr) {
+    public Map<String, Object> getTermsAndConditions(String urlStr, String prefix) {
         return Try.of(() -> new URL(urlStr))
                 .mapTry(url -> Utils.getConnectionIfRedirected(url, maxRedirect))
                 .flatMap(urlConnection -> Try.withResources(urlConnection::getInputStream).of(DigestUtils::sha256Hex))
-                .map(sha -> new TermsAndConditionsSchema()
-                        .URL(URI.create(urlStr))
-                        .hash(sha))
+                .map(sha -> ImmutableMap.of(prefix.concat("content"), ImmutableMap.of("@type", "xsd:anyURI", "@value", urlStr), prefix.concat("hash"), (Object) sha))
                 .recoverWith(Utils.mapFailure(err ->
                                 new ResponseStatusException(
                                         HttpStatus.BAD_REQUEST,

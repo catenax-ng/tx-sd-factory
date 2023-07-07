@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.service.misc;
 
 import io.vavr.Lazy;
 import io.vavr.control.Try;

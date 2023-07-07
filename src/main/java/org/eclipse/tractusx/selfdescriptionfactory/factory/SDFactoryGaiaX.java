@@ -18,15 +18,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.factory;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import foundation.identity.jsonld.JsonLDUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.tractusx.selfdescriptionfactory.service.Claims;
+import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
 import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
-import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.ConversionService;
@@ -45,11 +46,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Profile("catena-x-ctx")
-public class SDFactoryCatenaX implements SDFactory{
+@Profile("gaia-x-ctx")
+public class SDFactoryGaiaX implements SDFactory {
     @Value("${app.verifiableCredentials.durationDays:90}")
     private int duration;
-    private final CustodianWallet custodianWallet;
     private final ConversionService conversionService;
     private final ClearingHouse clearingHouse;
 
@@ -58,8 +58,9 @@ public class SDFactoryCatenaX implements SDFactory{
     public void createVC(Object document) {
         var claimsHolder = Optional.ofNullable(conversionService.convert(document, Claims.class)).orElseThrow();
         var claims = new LinkedHashMap<>(claimsHolder.claims());
-        var holder = claims.remove("holder");
-        var issuer = claims.remove("issuer");
+        claims.remove("holder");
+        claims.remove("issuer");
+        var type = claims.remove("type");
         var externalId = claims.remove("externalId");
         var credentialSubject = CredentialSubject.fromJsonObject(claims);
         var verifiableCredential = VerifiableCredential.builder()
@@ -68,9 +69,7 @@ public class SDFactoryCatenaX implements SDFactory{
                 .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
                 .credentialSubject(credentialSubject)
                 .build();
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "issuerIdentifier", issuer);
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "holderIdentifier", holder);
-        //var vc = custodianWallet.getSignedVC(verifiableCredential);
+        JsonLDUtils.jsonLdAdd(verifiableCredential, "type", type);
         clearingHouse.sendToClearingHouse(verifiableCredential, externalId.toString());
     }
 }

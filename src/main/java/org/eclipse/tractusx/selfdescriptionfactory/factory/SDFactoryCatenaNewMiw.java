@@ -18,25 +18,26 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service;
+package org.eclipse.tractusx.selfdescriptionfactory.factory;
 
-import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import foundation.identity.jsonld.JsonLDUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.tractusx.selfdescriptionfactory.service.SDFactory;
 import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
+import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A service to create and manipulate of Self-Description document
@@ -44,30 +45,31 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Profile("gaia-x-ctx")
-public class SDFactoryGaiaX implements SDFactory{
+@Profile("catena-x-new-miw")
+public class SDFactoryCatenaNewMiw extends SDFactoryCommon implements SDFactory {
     @Value("${app.verifiableCredentials.durationDays:90}")
     private int duration;
-    private final ConversionService conversionService;
+    @Value("${app.verifiableCredentials.schema2210Url}")
+    private URI contextUri;
+
+    private final CustodianWallet custodianWallet;
+    private final @Getter ConversionService conversionService;
     private final ClearingHouse clearingHouse;
 
     @Override
     @PreAuthorize("hasAuthority(@securityRoles.createRole)")
     public void createVC(Object document) {
-        var claimsHolder = Optional.ofNullable(conversionService.convert(document, Claims.class)).orElseThrow();
-        var claims = new LinkedHashMap<>(claimsHolder.claims());
-        claims.remove("holder");
-        claims.remove("issuer");
-        var type = claims.remove("type");
-        var externalId = claims.remove("externalId");
-        var credentialSubject = CredentialSubject.fromJsonObject(claims);
+        var processed = makeSubject(document);
         var verifiableCredential = VerifiableCredential.builder()
-                .contexts(claimsHolder.vocabularies())
+                .context(contextUri)
+                .id(URI.create(UUID.randomUUID().toString()))
+                .issuer(URI.create(processed.issuer()))
                 .issuanceDate(new Date())
                 .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
-                .credentialSubject(credentialSubject)
+                .credentialSubject(processed.credentialSubject())
+                .type(processed.type())
                 .build();
-        JsonLDUtils.jsonLdAdd(verifiableCredential, "type", type);
-        clearingHouse.sendToClearingHouse(verifiableCredential, externalId.toString());
+        var verifiableCredentialSigned = custodianWallet.getSignedVC(verifiableCredential);
+        clearingHouse.sendToClearingHouse(verifiableCredentialSigned, processed.externalId());
     }
 }

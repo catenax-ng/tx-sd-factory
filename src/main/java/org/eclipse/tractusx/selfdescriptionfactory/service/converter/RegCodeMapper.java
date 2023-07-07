@@ -18,19 +18,20 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.keycloak;
+package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 
+import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
 
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.net.URI;
 import java.util.Map;
 
-public interface KeycloakClient {
-    @RequestMapping(method = RequestMethod.POST, value = "/realms/{realm}/protocol/openid-connect/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    Map<String, Object> getTokens(URI serverUrl, @PathVariable("realm") String realm, Map<String, ?> params);
-
+public class RegCodeMapper {
+    public static Map<TypeEnum, String> getRegCodeMapper(String prefix) {
+        return Map.of(
+                TypeEnum.TAXID, prefix.concat("local"),
+                TypeEnum.VATID, prefix.concat("vatID"),
+                TypeEnum.EUID, prefix.concat("EUID"),
+                TypeEnum.EORI, prefix.concat("EORI"),
+                TypeEnum.LEICODE, prefix.concat("leiCode")
+        );
+    }
 }

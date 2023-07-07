@@ -18,20 +18,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ********************************************************************************/
 
-package org.eclipse.tractusx.selfdescriptionfactory.service.vrel3;
+package org.eclipse.tractusx.selfdescriptionfactory.dto;
 
-import lombok.experimental.Delegate;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
+import java.util.LinkedHashMap;
 
-import java.util.Map;
-
-public class RegCodeMapper implements Map<TypeEnum, String>{
-    @Delegate
-    private final Map<TypeEnum, String> regNumMap = Map.of(
-            TypeEnum.TAXID, "gx:taxID",
-            TypeEnum.VATID, "gx:vatID",
-            TypeEnum.EUID, "gx:EUID",
-            TypeEnum.EORI, "gx:EORI",
-            TypeEnum.LEICODE, "gx:leiCode"
-    );
-}
+public class LegalPersonSD extends LinkedHashMap<String, Object> {}
