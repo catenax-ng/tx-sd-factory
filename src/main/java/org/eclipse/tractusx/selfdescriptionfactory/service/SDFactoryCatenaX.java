@@ -63,6 +63,7 @@ public class SDFactoryCatenaX implements SDFactory{
         var holder = claims.remove("holder");
         var issuer = claims.remove("issuer");
         var externalId = claims.remove("externalId");
+        log.info("This is external id " + externalId);
         var credentialSubject = CredentialSubject.fromJsonObject(claims);
         var verifiableCredential = VerifiableCredential.builder()
                 .contexts(claimsHolder.vocabularies())
