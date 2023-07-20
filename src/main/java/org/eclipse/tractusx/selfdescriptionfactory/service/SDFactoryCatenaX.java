@@ -58,6 +58,7 @@ public class SDFactoryCatenaX implements SDFactory{
     @Override
     @PreAuthorize("hasAuthority(@securityRoles.createRole)")
     public void createVC(Object document) {
+        log.info("Whole document " + document.toString());
         var claimsHolder = Optional.ofNullable(conversionService.convert(document, Claims.class)).orElseThrow();
         var claims = new LinkedHashMap<>(claimsHolder.claims());
         var holder = claims.remove("holder");
