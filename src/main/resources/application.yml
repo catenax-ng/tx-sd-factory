@@ -24,7 +24,7 @@ server:
     include-message: always
 keycloak:
   resource:
-    clientid: Cl2-CX-Portal
+    clientid: Cl6-CX-DAPS
 spring:
   jackson:
     default-property-inclusion: non_null
