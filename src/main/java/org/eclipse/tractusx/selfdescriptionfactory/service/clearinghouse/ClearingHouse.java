@@ -20,9 +20,9 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse;
 
-import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import foundation.identity.jsonld.JsonLDObject;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class ClearingHouse implements InitializingBean {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Environment environment;
 
-    public void sendToClearingHouse(VerifiableCredential payload, String externalId) {
+    public void sendToClearingHouse(JsonLDObject payload, String externalId) {
         if (log.isDebugEnabled()) {
             debug(payload,  externalId);
         }
@@ -56,7 +56,7 @@ public class ClearingHouse implements InitializingBean {
         }
     }
     @SneakyThrows
-    protected void debug(VerifiableCredential payload, String externalId) {
+    protected void debug(JsonLDObject payload, String externalId) {
         var annotation = ClearingHouseClient.class.getAnnotation(FeignClient.class);
         var name = annotation.name();
         Optional.ofNullable(technicalUsersDetails.getUsersDetails().get(name)).map(TechnicalUsersDetails.UserDetail::uri).ifPresent(uri -> log.debug("URL: {}", uri));

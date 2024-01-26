@@ -29,7 +29,7 @@ spring:
   jackson:
     default-property-inclusion: non_null
   profiles:
-    active: catena-x-ctx
+    active: test
   security:
     oauth2:
       resourceserver:
@@ -45,11 +45,16 @@ app:
     version: ^project.version^
   verifiableCredentials:
     durationDays: 90
-    schema2210Url: https://f1c82785-5598-41c7-a083-01a8e1a80e19.mock.pstmn.io/ctxsd
-    gaia-x-participant-schema: https://registry.lab.gaia-x.eu/development/api/trusted-schemas-registry/v2/schemas
-    gaia-x-service-schema: https://gaia-x.gitlab.io/gaia-x-community/gaia-x-self-descriptions/service/ontology.json
-    #catena-x-schema: https://github.com/catenax-ng/tx-sd-factory/raw/clearing-house/src/main/resources/verifiablecredentials.jsonld/catenax.jsonld
-    catena-x-schema: https://f1c82785-5598-41c7-a083-01a8e1a80e19.mock.pstmn.io/ctxsd
+    gaia-x-participant-schema: https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#
+    gaia-x-service-schema: https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#
+    gaia-x-policy: https://shop.t-systems.de/eshop/medias/otc-service-specification-TSI.pdf?context=bWFzdGVyfGVtYWlsLWF0dGFjaG1lbnRzfDI5NTMzNzd8YXBwbGljYXRpb24vcGRmfGVtYWlsLWF0dGFjaG1lbnRzL2g0My9oMDMvaDAwLzg4NjY0MzU0OTgwMTQucGRmfGJiMjUyMmI3OGFjNWYwYzc4MDUxOWNhOTdjOWRmOTNhNmJmNGEzYTU4YTc1YTAxOTZjNzFhZGY5M2Y0YjUwZWY
+    gaia-x-dataAccountExport:
+      "[gx:requestType]": API
+      "[gx:accessType]": digital
+      "[gx:formatType]": application/json
+    gaia-x-dataProtectionRegime:
+      - GDPR2016
+    catena-x-ns: https://w3id.org/catena-x/core#
   usersDetails:
     custodianWallet:
       #uri: https://managed-identity-wallets.int.demo.catena-x.net/api

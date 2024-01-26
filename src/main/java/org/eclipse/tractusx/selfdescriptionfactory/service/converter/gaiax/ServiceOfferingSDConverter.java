@@ -20,53 +20,75 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service.converter.gaiax;
 
+import com.danubetech.verifiablecredentials.CredentialSubject;
+import com.danubetech.verifiablecredentials.VerifiableCredential;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.eclipse.tractusx.selfdescriptionfactory.SDFactory;
 import org.eclipse.tractusx.selfdescriptionfactory.Utils;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.ServiceOfferingSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.TermsAndConditionsHelper;
-import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-@Component
-@RequiredArgsConstructor
-@Profile("gaia-x-ctx")
+@ConfigurationProperties(prefix = "app.verifiable-credentials")
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Validated
 public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSchema, SDFactory.SelfDescription> {
 
-    private final CustodianWallet custodianWallet;
+    @Setter private Map<String, String> gaiaXDataAccountExport;
+    @Setter private List<String> gaiaXDataProtectionRegime;
+    @Setter @NotNull(message = "app.verifiableCredentials.gaia-x-participant-schema shall be defined in the configuration file") private URI gaiaXServiceSchema;
+    @Setter @NotNull(message = "app.verifiableCredentials.gaia-x-policy shall be defined in the configuration file") private URI gaiaXPolicy;
+    @Setter @Positive(message = "app.verifiableCredentials.durationDays shall be defined in the configuration file") private int durationDays;
+    @Setter @NotNull(message = "app.verifiableCredentials.catena-x-ns shall be defined in the configuration file") private String catenaXNs;
     private final TermsAndConditionsHelper termsAndConditionsHelper;
-    @Value("${app.verifiableCredentials.gaia-x-service-schema}")
-    private URI contextUri;
 
+    /**
+     * Convert ServiceOfferingSchema to SelfDescription
+     * @param serviceOfferingSchema the service offering schema
+     * @return the self description
+     */
     @Override
     public SDFactory.SelfDescription convert(ServiceOfferingSchema serviceOfferingSchema) {
-        var serviceOfferingSD = new SDFactory.SelfDescription(List.of(contextUri), serviceOfferingSchema.getHolder(), serviceOfferingSchema.getIssuer(), serviceOfferingSchema.getExternalId(), null);
-        serviceOfferingSD.put("@context", Map.of("ctxsd", "https://w3id.org/catena-x/core#"));
-        serviceOfferingSD.put("id", custodianWallet.getWalletData(serviceOfferingSchema.getHolder()).get("did"));
+        // Create a self description with the external id from the service offering schema
+        var selfDescription = new SDFactory.SelfDescription(serviceOfferingSchema.getExternalId());
+
+        // Create a map for the service offering self description
+        var serviceOfferingSD = new LinkedHashMap<String, Object>();
+        serviceOfferingSD.put("@context", Map.of("ctxsd", catenaXNs));
+        serviceOfferingSD.put("id", "http://catena-x.net/bpn/".concat(serviceOfferingSchema.getHolder()));
         serviceOfferingSD.put("type", "gx:ServiceOffering");
         serviceOfferingSD.put("ctxsd:connector-url", "https://connector-placeholder.net");
-        serviceOfferingSD.put("gx:providedBy", Map.of("id", serviceOfferingSchema.getProvidedBy()));
-        Map<String, Object> dataAccountExportNode = new LinkedHashMap<>();
-        dataAccountExportNode.put("gx:requestType", "email");
-        dataAccountExportNode.put("gx:accessType", "digital");
-        dataAccountExportNode.put("gx:formatType", "json");
-        serviceOfferingSD.put("gx:dataAccountExport", List.of(dataAccountExportNode));
+
+        // Create a setter function to add values to the service offering self description
         var setter = new Object() {
             <T> Consumer<T> set(String fieldName) {
                 return t -> serviceOfferingSD.put(fieldName, t);
             }
         };
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getAggregationOf(), Utils::uriFromStr).ifPresent(setter.set("gx:aggregationOf"));
+
+        // Add aggregationOf field if non-empty
+        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getAggregationOf(), Utils::uriFromStr)
+                .ifPresent(setter.set("gx:aggregationOf"));
+
+        // Add termsAndConditions field if non-empty
         Utils.getNonEmptyListFromCommaSeparated(
                 serviceOfferingSchema.getTermsAndConditions(),
                 url -> termsAndConditionsHelper.getTermsAndConditions(
@@ -75,7 +97,31 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
                         h -> Map.of("gx:hash", h)
                 )
         ).ifPresent(setter.set("gx:termsAndConditions"));
-        Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getPolicies(), Function.identity()).ifPresent(setter.set("gx:policy"));
-        return serviceOfferingSD;
+
+        // Add policies field if non-empty, using policyUri
+        serviceOfferingSD.put(
+                "gx:policy",
+                Utils.getNonEmptyListFromCommaSeparated(serviceOfferingSchema.getPolicies(), Function.identity())
+                    .map(l -> Stream.concat(Stream.of(gaiaXPolicy), l.stream()).toList())
+                    .map(Object.class::cast)
+                    .orElse(gaiaXPolicy)
+        );
+
+        // Add dataProtectionRegime and dataAccountExport fields
+        serviceOfferingSD.put("gx:dataProtectionRegime", gaiaXDataProtectionRegime);
+        serviceOfferingSD.put("gx:dataAccountExport", gaiaXDataAccountExport);
+
+        // Create a verifiable credential using the service offering self description
+        var vc = VerifiableCredential.builder()
+                .context(gaiaXServiceSchema)
+                .id(URI.create("http://catena-x.net/service-offering/".concat(UUID.randomUUID().toString())))
+                .issuanceDate(new Date())
+                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(durationDays))))
+                .credentialSubject(CredentialSubject.fromMap(serviceOfferingSD))
+                .build();
+
+        // Add the verifiable credential to the self description and return it
+        selfDescription.getVerifiableCredentialList().add(vc);
+        return selfDescription;
     }
 }

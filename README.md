@@ -86,7 +86,7 @@ An example of the body for LegalParticipant is given bellow:
   "externalId": "ID01234-123-4321",
   "registrationNumber": [
     {
-      "type": "local",
+      "type": "taxID",
       "value": "o12345678"
     }
   ],

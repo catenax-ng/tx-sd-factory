@@ -20,46 +20,151 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service.converter.gaiax;
 
+import com.danubetech.verifiablecredentials.CredentialSubject;
+import com.danubetech.verifiablecredentials.VerifiableCredential;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.tractusx.selfdescriptionfactory.SDFactory;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.LegalParticipantSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.RegCodeMapper;
-import org.eclipse.tractusx.selfdescriptionfactory.service.wallet.CustodianWallet;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static org.eclipse.tractusx.selfdescriptionfactory.Utils.mapOf;
 
 @Component
 @RequiredArgsConstructor
-@Profile("gaia-x-ctx")
 public class LegalParticipantSDConverter implements Converter<LegalParticipantSchema, SDFactory.SelfDescription> {
-
-    private final CustodianWallet custodianWallet;
     private final Map<RegistrationNumberSchema.TypeEnum, String> regCodeMapper = RegCodeMapper.getRegCodeMapper("gx:");
+
     @Value("${app.verifiableCredentials.gaia-x-participant-schema}")
     private URI contextUri;
+    @Value("${{app.verifiableCredentials.catena-x-ns}")
+    private String ctxsd;
 
+    @Value("${app.verifiableCredentials.durationDays:90}")
+    private int duration;
 
     @Override
     public SDFactory.SelfDescription convert(LegalParticipantSchema legalParticipantSchema) {
-        var legalParticipantSD = new SDFactory.SelfDescription(List.of(contextUri), legalParticipantSchema.getHolder(), legalParticipantSchema.getIssuer(), legalParticipantSchema.getExternalId(), null);
-        legalParticipantSD.put("@context", Map.of("ctxsd", "https://w3id.org/catena-x/core#"));
-        legalParticipantSD.put("id", custodianWallet.getWalletData(legalParticipantSchema.getBpn()).get("did"));
+        var selfDescription = new SDFactory.SelfDescription(legalParticipantSchema.getExternalId());
+        var regNumbers = legalParticipantSchema.getRegistrationNumber().stream()
+                .map(registrationNumberSchema -> getLegalRegistrationNumberVc(legalParticipantSchema, registrationNumberSchema)).toList();
+        var legalParticipant = getLegalPersonVc(legalParticipantSchema, regNumbers.stream().map(VerifiableCredential::getId).toList());
+        selfDescription.getVerifiableCredentialList().add(legalParticipant);
+        selfDescription.getVerifiableCredentialList().addAll(regNumbers);
+        selfDescription.getVerifiableCredentialList().add(getGxTermsAndConditionsVc(legalParticipantSchema));
+        return selfDescription;
+    }
+
+    /**
+     * Generates a Verifiable Credential for a legal person based on the provided legal participant schema and registration numbers.
+     *
+     * @param legalParticipantSchema The legal participant schema containing the necessary information.
+     * @param regNumbers The list of registration numbers for the legal person.
+     * @return The generated Verifiable Credential for the legal person.
+     */
+    private VerifiableCredential getLegalPersonVc(LegalParticipantSchema legalParticipantSchema, List<URI> regNumbers) {
+        // Create a map to hold the verifiable credential data
+        var legalParticipantSD = new LinkedHashMap<String, Object>();
+
+        // Set the context and id of the verifiable credential
+        legalParticipantSD.put("@context", Map.of("ctxsd", ctxsd));
+        legalParticipantSD.put("id", "http://catena-x.net/bpn/".concat(legalParticipantSchema.getHolder()));
+
+        // Set the type and additional properties of the legal participant
         legalParticipantSD.put("type", "gx:LegalParticipant");
         legalParticipantSD.put("ctxsd:bpn", legalParticipantSchema.getBpn());
-        legalParticipantSD.put("gx:legalName", custodianWallet.getWalletData(legalParticipantSchema.getBpn()).get("name"));
-        legalParticipantSD.put(
-                "gx:legalRegistrationNumber",
-                legalParticipantSchema.getRegistrationNumber().stream().map(regNum -> Map.of(regCodeMapper.get(regNum.getType()), regNum.getValue())).toList()
+        legalParticipantSD.put("gx:legalName", "name placeholder");
+
+        // Set the legal registration number based on the number of registration numbers provided
+        legalParticipantSD.put("gx:legalRegistrationNumber",
+                regNumbers.size() == 1
+                        ? Map.of("id", regNumbers.get(0))
+                        : regNumbers.stream().map(regNum -> Map.of("gx:legalRegistrationNumber", Map.of("id", regNum))).toList()
         );
+
+        // Set the headquarter and legal addresses
         legalParticipantSD.put("gx:headquarterAddress", Map.of("gx:countrySubdivisionCode", legalParticipantSchema.getHeadquarterAddressCountry()));
         legalParticipantSD.put("gx:legalAddress", Map.of("gx:countrySubdivisionCode", legalParticipantSchema.getLegalAddressCountry()));
-        return legalParticipantSD;
+
+        // Build and return the Verifiable Credential
+        return VerifiableCredential.builder()
+                .context(contextUri)
+                .id(URI.create("http://catena-x.net/legal-participant/".concat(UUID.randomUUID().toString())))
+                .issuanceDate(new Date())
+                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
+                .credentialSubject(CredentialSubject.fromMap(legalParticipantSD))
+                .build();
+    }
+
+    /**
+     * Generates a Verifiable Credential for a legal registration number.
+     *
+     * @param legalParticipantSchema The legal participant schema
+     * @param registrationNumberSchema The registration number schema
+     * @return The Verifiable Credential for the legal registration number
+     */
+    private VerifiableCredential getLegalRegistrationNumberVc(
+            LegalParticipantSchema legalParticipantSchema,
+            RegistrationNumberSchema registrationNumberSchema
+    ) {
+        // Construct the Verifiable Credential with builder pattern
+        return VerifiableCredential.builder()
+                .id(URI.create("http://catena-x.net/legal-registration-number/".concat(UUID.randomUUID().toString())))
+                .issuanceDate(new Date())
+                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
+                .credentialSubject(
+                        CredentialSubject.builder()
+                                .context(contextUri)
+                                .type("gx:legalRegistrationNumber")
+                                .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getBpn())))
+                                .properties(
+                                        // Conditionally set properties based on registration number type
+                                        registrationNumberSchema.getType().equals(RegistrationNumberSchema.TypeEnum.VATID)
+                                                ? mapOf("gx:vatID", registrationNumberSchema.getValue(), "gx:vatID-countryCode", "DE")
+                                                : Map.of(regCodeMapper.get(registrationNumberSchema.getType()), registrationNumberSchema.getValue()))
+                                .build()
+                ).build();
+    }
+
+    private static final String GX_TNC =
+            """
+            The PARTICIPANT signing the Self-Description agrees as follows:
+            - to update its descriptions about any changes, be it technical, organizational, or legal - especially but not limited to contractual in regards to the indicated attributes present in the descriptions.
+            
+            The keypair used to sign Verifiable Credentials will be revoked where Gaia-X Association becomes aware of any inaccurate statements in regards to the claims which result in a non-compliance with the Trust Framework and policy rules defined in the Policy Rules and Labelling Document (PRLD).
+            """;
+
+    /**
+     * Retrieves a Verifiable Credential for the Gx terms and conditions
+     * based on the provided LegalParticipantSchema.
+     *
+     * @param legalParticipantSchema The schema of the legal participant
+     * @return The Verifiable Credential for the Gx terms and conditions
+     */
+    private VerifiableCredential getGxTermsAndConditionsVc(LegalParticipantSchema legalParticipantSchema) {
+        return VerifiableCredential.builder()
+                .id(URI.create("http://catena-x.net/terms-and-conditions/".concat(UUID.randomUUID().toString())))
+                .issuanceDate(new Date())
+                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
+                .credentialSubject(
+                        CredentialSubject.builder()
+                                .context(contextUri)
+                                .type("gx:GaiaXTermsAndConditions")
+                                .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getBpn())))
+                                .properties(Map.of("gx:termsAndConditions", GX_TNC))
+                                .build()
+                ).build();
     }
 }
