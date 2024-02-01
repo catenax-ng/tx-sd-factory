@@ -15,6 +15,19 @@ entries:
     - https://github.com/catenax-ng/tx-sd-factory/releases/download/sdfactory-3.0.0/sdfactory-3.0.0.tgz
     version: 3.0.0
   - apiVersion: v2
+    appVersion: 2.1.9
+    created: "2024-02-01T09:41:10.49976519Z"
+    description: Helm Charts for SD Factory application. Self-Description Factory
+      component is responsible for the creation of Self Descriptions.
+    digest: 9cc699fe9ec20c7765a5aad992f1da0896211a8ee29d60ff41907a583257f1ea
+    name: sdfactory
+    sources:
+    - https://github.com/eclipse-tractusx/sd-factory
+    type: application
+    urls:
+    - https://github.com/catenax-ng/tx-sd-factory/releases/download/sdfactory-2.1.11/sdfactory-2.1.11.tgz
+    version: 2.1.11
+  - apiVersion: v2
     appVersion: 2.1.8
     created: "2023-11-27T09:44:05.09217079Z"
     description: Helm Charts for SD Factory application. Self-Description Factory
@@ -334,4 +347,4 @@ entries:
     urls:
     - https://github.com/catenax-ng/tx-sd-factory/releases/download/sdfactory-1.0.7/sdfactory-1.0.7.tgz
     version: 1.0.7
-generated: "2023-11-27T09:44:05.092334235Z"
+generated: "2024-02-01T09:41:10.499966238Z"
