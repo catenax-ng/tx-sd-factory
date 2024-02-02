@@ -23,16 +23,26 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
 
 import java.util.Map;
+import java.util.function.Function;
 
 public class RegCodeMapper {
-    private RegCodeMapper(){}
-    public static Map<TypeEnum, String> getRegCodeMapper(String prefix) {
-        return Map.of(
-                TypeEnum.TAXID, prefix.concat("local"),
-                TypeEnum.VATID, prefix.concat("vatID"),
-                TypeEnum.EUID, prefix.concat("EUID"),
-                TypeEnum.EORI, prefix.concat("EORI"),
-                TypeEnum.LEICODE, prefix.concat("leiCode")
-        );
+    private final String prefix;
+    private RegCodeMapper(String prefix){
+        this.prefix = prefix;
+    }
+    private static final Map<TypeEnum, String> regCodeMapper = Map.of(
+            TypeEnum.TAXID, "local",
+            TypeEnum.VATID, "vatID",
+            TypeEnum.EUID, "EUID",
+            TypeEnum.EORI, "EORI",
+            TypeEnum.LEICODE, "leiCode"
+    );
+
+    public String get(TypeEnum type) {
+        return prefix.concat(regCodeMapper.get(type));
+    }
+
+    public static Function<TypeEnum, String> getRegCodeMapper(String prefix) {
+        return new RegCodeMapper(prefix)::get;
     }
 }

@@ -20,22 +20,22 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory;
 
-import com.danubetech.verifiablecredentials.VerifiableCredential;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.tractusx.selfdescriptionfactory.api.vrel3.ApiApiDelegate;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
+import org.eclipse.tractusx.selfdescriptionfactory.service.AuthChecker;
 import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * A service to create and manipulate of Self-Description document
@@ -43,24 +43,30 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SDFactory implements ApiApiDelegate {
+public class SDFactory implements ApiApiDelegate, InitializingBean {
 
     private final ConversionService conversionService;
     private final ClearingHouse clearingHouse;
+    private final Environment environment;
+    private final AuthChecker authChecker;
+    private Function<SelfdescriptionPostRequest, ResponseEntity<Void>> decoratedFunction;
 
-    @PreAuthorize("hasAuthority(@securityRoles.createRole)")
+
     @Override
     public ResponseEntity<Void> selfdescriptionPost(SelfdescriptionPostRequest selfdescriptionPostRequest) {
+       return decoratedFunction.apply(selfdescriptionPostRequest);
+    }
+
+    private ResponseEntity<Void> doWork(SelfdescriptionPostRequest selfdescriptionPostRequest) {
         var selfDescription = Objects.requireNonNull(conversionService.convert(selfdescriptionPostRequest, SelfDescription.class), "Converted SD-Document is null. Very strange");
         clearingHouse.sendToClearingHouse(selfDescription.getVerifiableCredentialList(), selfDescription.getExternalId());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @Data
-    @RequiredArgsConstructor
-    public static class SelfDescription {
-        private final String externalId;
-        private final List<VerifiableCredential> verifiableCredentialList = new ArrayList<>(); //<VerifiableCredential>
+    @Override
+    public void afterPropertiesSet() {
+        decoratedFunction = Arrays.asList(environment.getActiveProfiles()).contains("test")
+                ? this::doWork
+                : authChecker.isAuthorized(this::doWork);
     }
-
 }

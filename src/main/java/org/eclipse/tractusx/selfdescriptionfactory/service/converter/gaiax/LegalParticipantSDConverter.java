@@ -23,7 +23,7 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.converter.gaiax;
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import lombok.RequiredArgsConstructor;
-import org.eclipse.tractusx.selfdescriptionfactory.SDFactory;
+import org.eclipse.tractusx.selfdescriptionfactory.SelfDescription;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.LegalParticipantSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.RegCodeMapper;
@@ -39,25 +39,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.eclipse.tractusx.selfdescriptionfactory.Utils.mapOf;
 
 @Component
 @RequiredArgsConstructor
-public class LegalParticipantSDConverter implements Converter<LegalParticipantSchema, SDFactory.SelfDescription> {
-    private final Map<RegistrationNumberSchema.TypeEnum, String> regCodeMapper = RegCodeMapper.getRegCodeMapper("gx:");
+public class LegalParticipantSDConverter implements Converter<LegalParticipantSchema, SelfDescription> {
+    private final Function<RegistrationNumberSchema.TypeEnum, String> regCodeMapper = RegCodeMapper.getRegCodeMapper("gx:");
 
     @Value("${app.verifiableCredentials.gaia-x-participant-schema}")
     private URI contextUri;
-    @Value("${{app.verifiableCredentials.catena-x-ns}")
+    @Value("${app.verifiableCredentials.catena-x-ns}")
     private String ctxsd;
 
     @Value("${app.verifiableCredentials.durationDays:90}")
     private int duration;
 
     @Override
-    public SDFactory.SelfDescription convert(LegalParticipantSchema legalParticipantSchema) {
-        var selfDescription = new SDFactory.SelfDescription(legalParticipantSchema.getExternalId());
+    public SelfDescription convert(LegalParticipantSchema legalParticipantSchema) {
+        var selfDescription = new SelfDescription(legalParticipantSchema.getExternalId());
         var regNumbers = legalParticipantSchema.getRegistrationNumber().stream()
                 .map(registrationNumberSchema -> getLegalRegistrationNumberVc(legalParticipantSchema, registrationNumberSchema)).toList();
         var legalParticipant = getLegalPersonVc(legalParticipantSchema, regNumbers.stream().map(VerifiableCredential::getId).toList());
@@ -133,7 +134,7 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
                                         // Conditionally set properties based on registration number type
                                         registrationNumberSchema.getType().equals(RegistrationNumberSchema.TypeEnum.VATID)
                                                 ? mapOf("gx:vatID", registrationNumberSchema.getValue(), "gx:vatID-countryCode", "DE")
-                                                : Map.of(regCodeMapper.get(registrationNumberSchema.getType()), registrationNumberSchema.getValue()))
+                                                : Map.of(regCodeMapper.apply(registrationNumberSchema.getType()), registrationNumberSchema.getValue()))
                                 .build()
                 ).build();
     }

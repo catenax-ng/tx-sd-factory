@@ -26,7 +26,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.eclipse.tractusx.selfdescriptionfactory.SDFactory;
+import org.eclipse.tractusx.selfdescriptionfactory.SelfDescription;
 import org.eclipse.tractusx.selfdescriptionfactory.Utils;
 import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.ServiceOfferingSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.TermsAndConditionsHelper;
@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 @ConfigurationProperties(prefix = "app.verifiable-credentials")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @Validated
-public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSchema, SDFactory.SelfDescription> {
+public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSchema, SelfDescription> {
 
     @Setter private Map<String, String> gaiaXDataAccountExport;
     @Setter private List<String> gaiaXDataProtectionRegime;
@@ -66,9 +66,9 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
      * @return the self description
      */
     @Override
-    public SDFactory.SelfDescription convert(ServiceOfferingSchema serviceOfferingSchema) {
+    public SelfDescription convert(ServiceOfferingSchema serviceOfferingSchema) {
         // Create a self description with the external id from the service offering schema
-        var selfDescription = new SDFactory.SelfDescription(serviceOfferingSchema.getExternalId());
+        var selfDescription = new SelfDescription(serviceOfferingSchema.getExternalId());
 
         // Create a map for the service offering self description
         var serviceOfferingSD = new LinkedHashMap<String, Object>();
