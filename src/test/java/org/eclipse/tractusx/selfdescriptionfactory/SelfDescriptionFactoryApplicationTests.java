@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.annotation.PostConstruct;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
+import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.SelfdescriptionPostRequest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -32,10 +32,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.convert.ConversionService;
 
+import java.net.URI;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class SelfDescriptionFactoryApplicationTests {
@@ -49,14 +50,150 @@ class SelfDescriptionFactoryApplicationTests {
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
+    static final String serviceOfferingStr =
+            """
+                    {
+                      "externalId": "ID01234-123-4321",
+                      "type": "ServiceOffering",
+                      "holder": "BPNL000000000000",
+                      "aggregationOf": [
+                        "https://aggr1.url",
+                        "https://aggr2.url"
+                      ],
+                      "termsAndConditions": [
+                        "https://raw.githubusercontent.com/eclipse-tractusx/sd-factory/main/LICENSE"
+                      ],
+                      "policies": [
+                        "policy1",
+                        "policy2"
+                      ],
+                      "dataProtectionRegime": [
+                        "GDPR2016"
+                      ],
+                      "dataAccountExport": {
+                        "gx:requestType": "API",
+                        "gx:accessType": "digital",
+                        "gx:formatType": "application/json"
+                      },
+                      "connectorUrl": "https://company.connector-url.org/",
+                      "attachment": [
+                        {
+                          "@context": [
+                            "https://www.w3.org/2018/credentials/v1",
+                            "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                            "https://w3id.org/security/suites/jws-2020/v1"
+                          ],
+                          "type": "VerifiableCredential",
+                          "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/98bc7605-0b5e-41f3-8c09-216cd8d614c4.json",
+                          "credentialSubject": {
+                            "@context": {
+                              "ctxsd": "https://w3id.org/catena-x/core#"
+                            },
+                            "id": "http://catena-x.net/bpn/BPNL000000000000",
+                            "type": "gx:LegalParticipant",
+                            "ctxsd:bpn": "BPNL000000000000",
+                            "gx:legalName": "T-Systems International GmbH",
+                            "gx:headquarterAddress": {
+                              "gx:countrySubdivisionCode": "DE-BY"
+                            },
+                            "gx:legalAddress": {
+                              "gx:countrySubdivisionCode": "DE-NW"
+                            },
+                            "gx:legalRegistrationNumber": {
+                              "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/35978ca0-4336-48d3-acdc-8f7a097d938c.json"
+                            },
+                            "issuer": "did:web:carla.dih-cloud.com:dev:signer_service",
+                            "issuanceDate": "2023-12-14T15:04:57.480Z",
+                            "proof": {
+                              "type": "JsonWebSignature2020",
+                              "created": "2024-01-01T02:42:35.581Z",
+                              "proofPurpose": "assertionMethod",
+                              "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..P9uwzVQ86qf8o0oD7kxbcC0isaPGfdGfQT4B5LTnoI2emX4Uq46dS_S9BjvH7mDRX9Zg2ckTclvhR5shCPOAOaSPqEcpwcOGr3zIwrASL-onoWVHULVClMjzSLgkzgpv-hfleJQ3fGsMYVKHxz6E8Pp9-ANWwKwupXJN5nOeQwhaFIQyg69BJE93qtV7AjZUE3AiRpIwzYYHC0vo_u8ThWnBENy148bgpqF4cUs2C0Od89FrQIjYky7tAED27rFZ51IfpBhaJo9-lf3XTRWkKPPxklFfdzHnl9xLtDWH1JyusSQFS2wiJHJNrKRDaT3uwubsLCgx06cdORrqyJ8NeMm1ijllW6baPxEQG2VUVfotVj6EZZg_z_9aDgN7n9w4IiMQXYLJR1TnqPq-iNlj8IVs4l84ZJFvrmykCwOGbVaKYsOMFs276ydgfUlzY01HxYAIxZ9LEArbhVbRT88quBuirPou1E0K2E3FbZyV8Loh9aNrJxssrLJ8iTFIWsSdbV20IN2EJsrBAPFUP7i0ZyFO1L4rWLFCjiN3jSyC9kMPUigpEEt2Eu-p9e27n6SmC1FXmSkvHdeSNJyIeHPgfPEG4JDcvd6v_89wqBb2HJPx1GnpQqOWM-Ax3xtr_AUITHsvBa1JyWu4DUONmhtuIUJsE-FBQG_YO7P-sjmP2l8",
+                              "verificationMethod": "did:web:gx-compliance.gxdch.dih.telekom.com:v1"
+                            }
+                          }
+                        },
+                        {
+                          "@context": [
+                            "https://www.w3.org/2018/credentials/v1",
+                            "https://w3id.org/security/suites/jws-2020/v1"
+                          ],
+                          "type": "VerifiableCredential",
+                          "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/35978ca0-4336-48d3-acdc-8f7a097d938c.json",
+                          "issuer": "did:web:gx-notary.gxdch.dih.telekom.com:v1",
+                          "issuanceDate": "2024-01-01T02:42:34.617Z",
+                          "credentialSubject": {
+                            "@context": "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                            "id": "http://catena-x.net/bpn/BPNL000000000000",
+                            "type": "gx:legalRegistrationNumber",
+                            "gx:vatID": "DE118645675",
+                            "gx:vatID-countryCode": "DE"
+                          },
+                          "evidence": [
+                            {
+                              "gx:evidenceURL": "https://ec.europa.eu/taxation_customs/vies/services/checkVatService",
+                              "gx:executionDate": "2024-01-01T02:42:34.617Z",
+                              "gx:evidenceOf": "gx:vatID"
+                            }
+                          ],
+                          "proof": {
+                            "type": "JsonWebSignature2020",
+                            "created": "2024-01-01T02:42:34.635Z",
+                            "proofPurpose": "assertionMethod",
+                            "verificationMethod": "did:web:gx-notary.gxdch.dih.telekom.com:v1#X509-JWK2020",
+                            "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..eWQFtqfP6vnA2hwo8wHMDD5w6ZkAs62wTGpBHMhi6ZFWijeZcQbQbtFerZEk5j2UDvfedSNLjFUHfhDMBNt9OA-S7QyH7uCT9Td6jNIBrJqar-bTAiABqvUNfebLs8eRtAtGr0y_vmuxNd0EUPOAINQrK85q8GxyUa3X4EGd9b7jchKW2oGl-rgsHq7OxNXvSd8OxY330rsCvmKmqyPy6ga-MDQwBZYXRDjTWMQ7Df8vmMTy8ACZMOJq_ajjjHTHxi7l_H3yD0EacfUcwDSFmH5SFjiHMiw88MBkJAAqLBj0ZlWzDClzbJqZGVLFLW-2KNRV-Eix5wu_21KIHCFl4TWouXD2kuY24ARx6HzFiklgOqhuL0x6NVTDI2pB6Z8CiQbNAusPxPAelczU56PQW6sIwo4s6fvMZWQLVTVtVDu5Z02GVYAVcBNUs9nKHAK9p4lu2PcIWg5LMOAgDYCx-tUW78XhP20YhboReNByORb15zlcGkVo-JVB0PtpdsEEBLnGg09Of6-z6moq20hcKOO0-ilrrwf3NjYB32QWKFt8XRAuxp9SayvTUVUr2nFSBoimgAr7tPkL9w-_DdOTY_9pwv5YtqnEE3ii22J7tls5eWKhaxs7hXatZqY20rWna0ccOGuEbTkHip4J-yMhy4mIJ2dzyxZHnqN8LAtWeTo"
+                          }
+                        },
+                        {
+                          "@context": [
+                            "https://w3id.org/security/suites/jws-2020/v1",
+                            "https://www.w3.org/2018/credentials/v1"
+                          ],
+                          "type": "VerifiableCredential",
+                          "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/d56122d4-679e-4290-a36d-09405df912cb.json",
+                          "issuer": "did:web:carla.dih-cloud.com:dev:signer_service",
+                          "issuanceDate": "2024-02-01T20:16:19Z",
+                          "credentialSubject": {
+                            "@context": "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                            "id": "http://catena-x.net/bpn/BPNL000000000000",
+                            "type": "gx:GaiaXTermsAndConditions",
+                            "gx:termsAndConditions": "The PARTICIPANT signing the Self-Description agrees as follows:\\n- to update its descriptions about any changes, be it technical, organizational, or legal - especially but not limited to contractual in regards to the indicated attributes present in the descriptions.\\n\\nThe keypair used to sign Verifiable Credentials will be revoked where Gaia-X Association becomes aware of any inaccurate statements in regards to the claims which result in a non-compliance with the Trust Framework and policy rules defined in the Policy Rules and Labelling Document (PRLD).\\n"
+                          },
+                          "proof": {
+                            "type": "JsonWebSignature2020",
+                            "created": "2024-01-01T04:21:12.913Z",
+                            "proofPurpose": "assertionMethod",
+                            "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..aYEdMRMLH1E7IfcA9mccspv_oiGrrkV7KZRQWcCSHM2a2Q4omGyTy9FkHWEZ8bA87vLgcJUsaOyA1ggYDDT0OQEtXiKeEZaYkMCc5Av0iQzyiB_1Ow2g7DXzGZ4kRoFQXbhFWPLn-f3f4ihkuIdF8MO9Iijzwbju2Jon4AxN5UMEcq1vGNkAn1PsW6H6myzU9wlk287GKpMKnIcL_brJ6IbbZq7gz7tZMpkf_epMaRTftkcPg3tUhPQRgtNOJ_N1FGvSByghVLDNQGuF4nVB3ZWvab87h_DcsGZwKg9farED0AiMWuzEFV-Ft99mkwN1rslv-rm7RXQcKuuHlTVYARGFbUaV4Tb4joYr2F9IVjWNq9V4xxWt988T7ROPWAuYsy9VS9VeVTI4kvqEu-VSamHDW34Rl6tX1bE-5c0OA2Hlq41QQXsMhjLZh0vW07-jENqaykVe9IBNS8o5Sfc4WJYukwa0axQ3DGl5AlpQMF_uJwG1hJOUyaO8fifC4xNDAh_DRSpo2Wfsk1dD3HVw5IH1YKGzDRrzXz1sxRW-SSiSXrcibxr63V0hHFi2Rm96L5CvF2jD__CkmKWNGOK8d2ksQZkGNbWBcTx5hitTkAdn8dEj0lG5O178-demyC0XWHMR18e0MgMxtq0IutRO3OqNjfA-poIARrwK14NgcbM",
+                            "verificationMethod": "did:web:gx-compliance.gxdch.dih.telekom.com:v1"
+                          }
+                        }
+                      ]
+                    }
+                    """;
 
-    static final String legalPersonStr =
+    static Stream<Arguments> serviceOfferingProvider() {
+        return Stream.of(
+                Arguments.of(serviceOfferingStr, "Correct Service Offering")
+        );
+    }
+
+    @ParameterizedTest(name = "{index} - {1}")
+    @MethodSource("serviceOfferingProvider")
+    public void testServiceOfferingConverter(String selfdescriptionRequestStr, String type) throws JsonProcessingException {
+        var selfdescriptionPostRequest = objectMapper.readValue(selfdescriptionRequestStr, SelfdescriptionPostRequest.class);
+        var converted = conversionService.convert(selfdescriptionPostRequest, SelfDescription.class);
+        assertNotNull(converted, "converted object should not be null");
+        assertFalse(converted.getVerifiableCredentialList().isEmpty());
+        System.out.println(objectMapper.writeValueAsString(converted.getVerifiableCredentialList()));
+    }
+
+    static final String legalParticipantStr =
             """
                     {
                       "externalId": "ID01234-123-4321",
                       "type": "LegalParticipant",
                       "holder": "BPNL000000000000",
-                      "issuer": "CAXSDUMMYCATENAZZ",
+                      "name": "Legal Participant Company Name",
                       "registrationNumber": [
                         {
                           "type": "taxID",
@@ -65,37 +202,117 @@ class SelfDescriptionFactoryApplicationTests {
                       ],
                       "headquarterAddress.country": "DE",
                       "legalAddress.country": "DE",
-                      "bpn": "BPNL000000000000"
+                      "attachment": [
+                        {
+                          "@context": [
+                            "https://w3id.org/security/suites/jws-2020/v1",
+                            "https://www.w3.org/2018/credentials/v1"
+                          ],
+                          "type": "VerifiableCredential",
+                          "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/d56122d4-679e-4290-a36d-09405df912cb.json",
+                          "issuer": "did:web:carla.dih-cloud.com:dev:signer_service",
+                          "issuanceDate": "2024-02-01T20:16:19Z",
+                          "credentialSubject": {
+                            "@context": "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                            "id": "http://catena-x.net/bpn/BPNL000000000000",
+                            "type": "gx:GaiaXTermsAndConditions",
+                            "gx:termsAndConditions": "The PARTICIPANT signing the Self-Description agrees as follows:\\n- to update its descriptions about any changes, be it technical, organizational, or legal - especially but not limited to contractual in regards to the indicated attributes present in the descriptions.\\n\\nThe keypair used to sign Verifiable Credentials will be revoked where Gaia-X Association becomes aware of any inaccurate statements in regards to the claims which result in a non-compliance with the Trust Framework and policy rules defined in the Policy Rules and Labelling Document (PRLD)\\n"
+                          },
+                          "proof": {
+                            "type": "JsonWebSignature2020",
+                            "created": "2024-01-01T04:21:12.913Z",
+                            "proofPurpose": "assertionMethod",
+                            "verificationMethod": "did:web:gx-compliance.gxdch.dih.telekom.com:v1",
+                            "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..aYEdMRMLH1E7IfcA9mccspv_oiGrrkV7KZRQWcCSHM2a2Q4omGyTy9FkHWEZ8bA87vLgcJUsaOyA1ggYDDT0OQEtXiKeEZaYkMCc5Av0iQzyiB_1Ow2g7DXzGZ4kRoFQXbhFWPLn-f3f4ihkuIdF8MO9Iijzwbju2Jon4AxN5UMEcq1vGNkAn1PsW6H6myzU9wlk287GKpMKnIcL_brJ6IbbZq7gz7tZMpkf_epMaRTftkcPg3tUhPQRgtNOJ_N1FGvSByghVLDNQGuF4nVB3ZWvab87h_DcsGZwKg9farED0AiMWuzEFV-Ft99mkwN1rslv-rm7RXQcKuuHlTVYARGFbUaV4Tb4joYr2F9IVjWNq9V4xxWt988T7ROPWAuYsy9VS9VeVTI4kvqEu-VSamHDW34Rl6tX1bE-5c0OA2Hlq41QQXsMhjLZh0vW07-jENqaykVe9IBNS8o5Sfc4WJYukwa0axQ3DGl5AlpQMF_uJwG1hJOUyaO8fifC4xNDAh_DRSpo2Wfsk1dD3HVw5IH1YKGzDRrzXz1sxRW-SSiSXrcibxr63V0hHFi2Rm96L5CvF2jD__CkmKWNGOK8d2ksQZkGNbWBcTx5hitTkAdn8dEj0lG5O178-demyC0XWHMR18e0MgMxtq0IutRO3OqNjfA-poIARrwK14NgcbM"
+                          }
+                        }
+                      ]
                     }
                     """;
-    static final String serviceOfferingStr =
+    static final String legalParticipantStrNoTnc =
             """
                     {
                       "externalId": "ID01234-123-4321",
-                      "type": "ServiceOffering",
+                      "type": "LegalParticipant",
                       "holder": "BPNL000000000000",
-                      "issuer": "CAXSDUMMYCATENAZZ",
-                      "providedBy": "https://participant.url",
-                      "aggregationOf": "https://aggr1.url, https://aggr2.url",
-                      "termsAndConditions": "https://raw.githubusercontent.com/eclipse-tractusx/sd-factory/main/LICENSE",
-                      "policies": "policy1, policy2"
+                      "name": "Legal Participant Company Name",
+                      "registrationNumber": [
+                        {
+                          "type": "taxID",
+                          "value": "o12345678"
+                        }
+                      ],
+                      "headquarterAddress.country": "DE",
+                      "legalAddress.country": "DE"
                     }
                     """;
 
-    static Stream<Arguments> inputProvider() {
+    static final String legalParticipantStrWrongTncBpn =
+            """
+                    {
+                      "externalId": "ID01234-123-4321",
+                      "type": "LegalParticipant",
+                      "holder": "BPNL000000000000",
+                      "name": "Legal Participant Company Name",
+                      "registrationNumber": [
+                        {
+                          "type": "taxID",
+                          "value": "o12345678"
+                        }
+                      ],
+                      "headquarterAddress.country": "DE",
+                      "legalAddress.country": "DE",
+                      "attachment": [
+                        {
+                          "@context": [
+                            "https://w3id.org/security/suites/jws-2020/v1",
+                            "https://www.w3.org/2018/credentials/v1"
+                          ],
+                          "type": "VerifiableCredential",
+                          "id": "https://carla.dih-cloud.com/dev/compliance_service/self-descriptions/cd532ca1-2545-4ce0-942f-008aece14316/d56122d4-679e-4290-a36d-09405df912cb.json",
+                          "issuer": "did:web:carla.dih-cloud.com:dev:signer_service",
+                          "issuanceDate": "2024-02-01T20:16:19Z",
+                          "credentialSubject": {
+                            "@context": "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+                            "id": "http://catena-x.net/bpn/BPNL000000000001",
+                            "type": "gx:GaiaXTermsAndConditions",
+                            "gx:termsAndConditions": "The PARTICIPANT signing the Self-Description agrees as follows:\\n- to update its descriptions about any changes, be it technical, organizational, or legal - especially but not limited to contractual in regards to the indicated attributes present in the descriptions.\\n\\nThe keypair used to sign Verifiable Credentials will be revoked where Gaia-X Association becomes aware of any inaccurate statements in regards to the claims which result in a non-compliance with the Trust Framework and policy rules defined in the Policy Rules and Labelling Document (PRLD)\\n"
+                          },
+                          "proof": {
+                            "type": "JsonWebSignature2020",
+                            "created": "2024-01-01T04:21:12.913Z",
+                            "proofPurpose": "assertionMethod",
+                            "verificationMethod": "did:web:gx-compliance.gxdch.dih.telekom.com:v1",
+                            "jws": "eyJhbGciOiJQUzI1NiIsImI2NCI6ZmFsc2UsImNyaXQiOlsiYjY0Il19..aYEdMRMLH1E7IfcA9mccspv_oiGrrkV7KZRQWcCSHM2a2Q4omGyTy9FkHWEZ8bA87vLgcJUsaOyA1ggYDDT0OQEtXiKeEZaYkMCc5Av0iQzyiB_1Ow2g7DXzGZ4kRoFQXbhFWPLn-f3f4ihkuIdF8MO9Iijzwbju2Jon4AxN5UMEcq1vGNkAn1PsW6H6myzU9wlk287GKpMKnIcL_brJ6IbbZq7gz7tZMpkf_epMaRTftkcPg3tUhPQRgtNOJ_N1FGvSByghVLDNQGuF4nVB3ZWvab87h_DcsGZwKg9farED0AiMWuzEFV-Ft99mkwN1rslv-rm7RXQcKuuHlTVYARGFbUaV4Tb4joYr2F9IVjWNq9V4xxWt988T7ROPWAuYsy9VS9VeVTI4kvqEu-VSamHDW34Rl6tX1bE-5c0OA2Hlq41QQXsMhjLZh0vW07-jENqaykVe9IBNS8o5Sfc4WJYukwa0axQ3DGl5AlpQMF_uJwG1hJOUyaO8fifC4xNDAh_DRSpo2Wfsk1dD3HVw5IH1YKGzDRrzXz1sxRW-SSiSXrcibxr63V0hHFi2Rm96L5CvF2jD__CkmKWNGOK8d2ksQZkGNbWBcTx5hitTkAdn8dEj0lG5O178-demyC0XWHMR18e0MgMxtq0IutRO3OqNjfA-poIARrwK14NgcbM"
+                          }
+                        }
+                      ]
+                    }
+                    """;
+
+    static Stream<Arguments> legalParticipantProvider() {
         return Stream.of(
-                Arguments.of(legalPersonStr, "Legal Participant"),
-                Arguments.of(serviceOfferingStr, "Service Offering")
+                Arguments.of(legalParticipantStr, "Legal Participant, correct TNC is in attachment"),
+                Arguments.of(legalParticipantStrNoTnc, "Legal Participant, TNC is missed"),
+                Arguments.of(legalParticipantStrWrongTncBpn, "Legal Participant TNC with wrong BPN")
         );
     }
 
     @ParameterizedTest(name = "{index} - {1}")
-    @MethodSource("inputProvider")
+    @MethodSource("legalParticipantProvider")
     public void testLegalPersonConverter(String selfdescriptionRequestStr, String type) throws JsonProcessingException {
         var selfdescriptionPostRequest = objectMapper.readValue(selfdescriptionRequestStr, SelfdescriptionPostRequest.class);
         var converted = conversionService.convert(selfdescriptionPostRequest, SelfDescription.class);
         assertNotNull(converted, "converted object should not be null");
         assertFalse(converted.getVerifiableCredentialList().isEmpty());
+        assertTrue(converted.getVerifiableCredentialList().stream()
+                .flatMap(vc -> Optional.ofNullable(vc.getCredentialSubject()).stream())
+                .anyMatch(subj ->
+                        "gx:GaiaXTermsAndConditions".equals(subj.getType())
+                                && URI.create("http://catena-x.net/bpn/BPNL000000000000").equals(subj.getId())
+                )
+        ); // no TNC
         System.out.println(objectMapper.writeValueAsString(converted.getVerifiableCredentialList()));
     }
+
 }

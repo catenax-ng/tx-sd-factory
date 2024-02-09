@@ -22,8 +22,8 @@ package org.eclipse.tractusx.selfdescriptionfactory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.tractusx.selfdescriptionfactory.api.vrel3.ApiApiDelegate;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.SelfdescriptionPostRequest;
+import org.eclipse.tractusx.selfdescriptionfactory.api.tagus.ApiApiDelegate;
+import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.SelfdescriptionPostRequest;
 import org.eclipse.tractusx.selfdescriptionfactory.service.AuthChecker;
 import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
 import org.springframework.beans.factory.InitializingBean;

@@ -234,36 +234,13 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/static/SDFactoryApi-vRel3.yml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/static/SDFactoryApi-Tagus.yml</inputSpec>
                             <generatorName>spring</generatorName>
-                            <apiPackage>org.eclipse.tractusx.selfdescriptionfactory.api.vrel3</apiPackage>
-                            <apiNameSuffix>v106</apiNameSuffix>
-                            <modelPackage>org.eclipse.tractusx.selfdescriptionfactory.model.vrel3</modelPackage>
+                            <apiPackage>org.eclipse.tractusx.selfdescriptionfactory.api.tagus</apiPackage>
+                            <modelPackage>org.eclipse.tractusx.selfdescriptionfactory.model.tagus</modelPackage>
                             <supportingFilesToGenerate>
                                 ApiUtil.java
                             </supportingFilesToGenerate>
-                            <configOptions>
-                                <useSpringBoot3>true</useSpringBoot3>
-                                <useJakartaEe>true</useJakartaEe>
-                                <delegatePattern>true</delegatePattern>
-                                <openApiNullable>false</openApiNullable>
-                                <dateLibrary>java8</dateLibrary>
-                                <java8>true</java8>
-                                <useBeanValidation>true</useBeanValidation>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>api-22.10</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/static/SDFactoryApi-v22.10.yml</inputSpec>
-                            <generatorName>spring</generatorName>
-                            <modelPackage>org.eclipse.tractusx.selfdescriptionfactory.model.v2210</modelPackage>
-                            <generateApis>false</generateApis>
-                            <generateSupportingFiles>false</generateSupportingFiles>
                             <configOptions>
                                 <useSpringBoot3>true</useSpringBoot3>
                                 <useJakartaEe>true</useJakartaEe>

@@ -24,8 +24,8 @@ import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.tractusx.selfdescriptionfactory.SelfDescription;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.LegalParticipantSchema;
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema;
+import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.LegalParticipantSchema;
+import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.RegistrationNumberSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.RegCodeMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
@@ -34,12 +34,9 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.eclipse.tractusx.selfdescriptionfactory.Utils.mapOf;
 
@@ -64,7 +61,7 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
         var legalParticipant = getLegalPersonVc(legalParticipantSchema, regNumbers.stream().map(VerifiableCredential::getId).toList());
         selfDescription.getVerifiableCredentialList().add(legalParticipant);
         selfDescription.getVerifiableCredentialList().addAll(regNumbers);
-        selfDescription.getVerifiableCredentialList().add(getGxTermsAndConditionsVc(legalParticipantSchema));
+        selfDescription.getVerifiableCredentialList().addAll(getGxTermsAndConditionsVc(legalParticipantSchema));
         return selfDescription;
     }
 
@@ -85,8 +82,8 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
 
         // Set the type and additional properties of the legal participant
         legalParticipantSD.put("type", "gx:LegalParticipant");
-        legalParticipantSD.put("ctxsd:bpn", legalParticipantSchema.getBpn());
-        legalParticipantSD.put("gx:legalName", "name placeholder");
+        legalParticipantSD.put("ctxsd:bpn", legalParticipantSchema.getHolder());
+        legalParticipantSD.put("gx:legalName", legalParticipantSchema.getName());
 
         // Set the legal registration number based on the number of registration numbers provided
         legalParticipantSD.put("gx:legalRegistrationNumber",
@@ -129,7 +126,7 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
                         CredentialSubject.builder()
                                 .context(contextUri)
                                 .type("gx:legalRegistrationNumber")
-                                .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getBpn())))
+                                .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getHolder())))
                                 .properties(
                                         // Conditionally set properties based on registration number type
                                         registrationNumberSchema.getType().equals(RegistrationNumberSchema.TypeEnum.VATID)
@@ -148,24 +145,36 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
             """;
 
     /**
-     * Retrieves a Verifiable Credential for the Gx terms and conditions
-     * based on the provided LegalParticipantSchema.
+     * Checks if attachment contains appropriate Gx Terms and Conditions verifiable credential and generates one if it does not.
      *
-     * @param legalParticipantSchema The schema of the legal participant
-     * @return The Verifiable Credential for the Gx terms and conditions
+     * @param  legalParticipantSchema   the legal participant schema
+     * @return                          the list of VC from attachment including Gx Terms and Conditions verifiable credentials
      */
-    private VerifiableCredential getGxTermsAndConditionsVc(LegalParticipantSchema legalParticipantSchema) {
-        return VerifiableCredential.builder()
-                .id(URI.create("http://catena-x.net/terms-and-conditions/".concat(UUID.randomUUID().toString())))
-                .issuanceDate(new Date())
-                .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
-                .credentialSubject(
-                        CredentialSubject.builder()
-                                .context(contextUri)
-                                .type("gx:GaiaXTermsAndConditions")
-                                .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getBpn())))
-                                .properties(Map.of("gx:termsAndConditions", GX_TNC))
-                                .build()
-                ).build();
+    private List<VerifiableCredential> getGxTermsAndConditionsVc(LegalParticipantSchema legalParticipantSchema) {
+        var attachment = Optional.ofNullable(legalParticipantSchema.getAttachment()).stream().flatMap(List::stream).map(Map.class::cast).map(VerifiableCredential::fromMap).toList();
+        if (attachment.stream().flatMap(vc -> Optional.ofNullable(vc.getCredentialSubject()).stream())
+                .anyMatch(subj ->
+                        "gx:GaiaXTermsAndConditions".equals(subj.getType())
+                                && URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getHolder())).equals(subj.getId())
+                )) {
+            return attachment;
+        } else {
+            return Stream.concat(
+                    attachment.stream(),
+                    Stream.of(VerifiableCredential.builder()
+                            .id(URI.create("http://catena-x.net/terms-and-conditions/".concat(UUID.randomUUID().toString())))
+                            .issuanceDate(new Date())
+                            .expirationDate(Date.from(Instant.now().plus(Duration.ofDays(duration))))
+                            .credentialSubject(
+                                    CredentialSubject.builder()
+                                            .context(contextUri)
+                                            .type("gx:GaiaXTermsAndConditions")
+                                            .id(URI.create("http://catena-x.net/bpn/".concat(legalParticipantSchema.getHolder())))
+                                            .properties(Map.of("gx:termsAndConditions", GX_TNC))
+                                            .build()
+                            ).build()
+                    )
+            ).toList();
+        }
     }
 }

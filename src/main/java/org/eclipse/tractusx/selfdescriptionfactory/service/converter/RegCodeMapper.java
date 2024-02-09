@@ -20,7 +20,7 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory.service.converter;
 
-import org.eclipse.tractusx.selfdescriptionfactory.model.vrel3.RegistrationNumberSchema.TypeEnum;
+import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.RegistrationNumberSchema.TypeEnum;
 
 import java.util.Map;
 import java.util.function.Function;
