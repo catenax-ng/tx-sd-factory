@@ -22,18 +22,22 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.converter.gaiax;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
+import io.vavr.control.Try;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.eclipse.tractusx.selfdescriptionfactory.SelfDescription;
+import org.eclipse.tractusx.selfdescriptionfactory.Utils;
 import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.ServiceOfferingSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.TermsAndConditionsHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.validation.annotation.Validated;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -51,6 +55,9 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
     @Setter @NotNull(message = "app.verifiableCredentials.gaia-x-policy shall be defined in the configuration file") private URI gaiaXPolicy;
     @Setter @Positive(message = "app.verifiableCredentials.durationDays shall be defined in the configuration file") private int durationDays;
     @Setter @NotNull(message = "app.verifiableCredentials.catena-x-ns shall be defined in the configuration file") private String catenaXNs;
+
+    @Value("${app.maxRedirect:5}")
+    private int maxRedirect;
     private final TermsAndConditionsHelper termsAndConditionsHelper;
 
     /**
@@ -60,7 +67,7 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
      */
     @Override
     public SelfDescription convert(ServiceOfferingSchema serviceOfferingSchema) {
-        var attachedVc = Optional.ofNullable(serviceOfferingSchema.getAttachment()).stream().flatMap(List::stream).map(Map.class::cast).map(VerifiableCredential::fromMap).toList();
+        var attachedVc = Try.of(() -> Utils.getAttachmentVc(serviceOfferingSchema.getAttachment(), maxRedirect)).get();
         var holderId = URI.create("http://catena-x.net/bpn/".concat(serviceOfferingSchema.getHolder()));
         var providedBy = findLegalParticipantVc(holderId, attachedVc).orElseThrow(() -> new IllegalArgumentException("gx:providedBy not found"));
 
@@ -73,7 +80,7 @@ public class ServiceOfferingSDConverter implements Converter<ServiceOfferingSche
         serviceOfferingSD.put("id", holderId.toString());
         serviceOfferingSD.put("type", "gx:ServiceOffering");
         serviceOfferingSD.put("ctxsd:connector-url", serviceOfferingSchema.getConnectorUrl());
-        serviceOfferingSD.put("ctxsd:providedBy", providedBy.getId());
+        serviceOfferingSD.put("gx:providedBy", providedBy.getId());
 
         // Create a setter function to add values to the service offering self description
         var setter = new Object() {

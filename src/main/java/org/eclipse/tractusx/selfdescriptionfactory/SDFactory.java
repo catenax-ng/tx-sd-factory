@@ -20,6 +20,9 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory;
 
+import com.danubetech.verifiablecredentials.VerifiablePresentation;
+import com.danubetech.verifiablecredentials.jsonld.VerifiableCredentialKeywords;
+import foundation.identity.jsonld.JsonLDUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.tractusx.selfdescriptionfactory.api.tagus.ApiApiDelegate;
@@ -27,14 +30,17 @@ import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.SelfdescriptionPo
 import org.eclipse.tractusx.selfdescriptionfactory.service.AuthChecker;
 import org.eclipse.tractusx.selfdescriptionfactory.service.clearinghouse.ClearingHouse;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -49,6 +55,8 @@ public class SDFactory implements ApiApiDelegate, InitializingBean {
     private final ClearingHouse clearingHouse;
     private final Environment environment;
     private final AuthChecker authChecker;
+    @Value("${app.verifiableCredentials.catena-x-ns}")
+    private String catenaXNs;
     private Function<SelfdescriptionPostRequest, ResponseEntity<Void>> decoratedFunction;
 
 
@@ -59,7 +67,11 @@ public class SDFactory implements ApiApiDelegate, InitializingBean {
 
     private ResponseEntity<Void> doWork(SelfdescriptionPostRequest selfdescriptionPostRequest) {
         var selfDescription = Objects.requireNonNull(conversionService.convert(selfdescriptionPostRequest, SelfDescription.class), "Converted SD-Document is null. Very strange");
-        clearingHouse.sendToClearingHouse(selfDescription.getVerifiableCredentialList(), selfDescription.getExternalId());
+        var presentation = VerifiablePresentation.builder()
+                .type(catenaXNs.concat(selfdescriptionPostRequest.getType()))
+                .build();
+        JsonLDUtils.jsonLdAddAsJsonArray(presentation, VerifiableCredentialKeywords.JSONLD_TERM_VERIFIABLECREDENTIAL, selfDescription.getVerifiableCredentialList());
+        clearingHouse.sendToClearingHouse(presentation, selfDescription.getExternalId());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
@@ -67,6 +79,6 @@ public class SDFactory implements ApiApiDelegate, InitializingBean {
     public void afterPropertiesSet() {
         decoratedFunction = Arrays.asList(environment.getActiveProfiles()).contains("test")
                 ? this::doWork
-                : authChecker.isAuthorized(this::doWork);
+                : authChecker.getAuthorizedFn(this::doWork);
     }
 }

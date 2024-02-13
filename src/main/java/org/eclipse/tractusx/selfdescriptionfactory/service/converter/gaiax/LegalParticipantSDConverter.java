@@ -22,8 +22,10 @@ package org.eclipse.tractusx.selfdescriptionfactory.service.converter.gaiax;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
+import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.tractusx.selfdescriptionfactory.SelfDescription;
+import org.eclipse.tractusx.selfdescriptionfactory.Utils;
 import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.LegalParticipantSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.model.tagus.RegistrationNumberSchema;
 import org.eclipse.tractusx.selfdescriptionfactory.service.converter.RegCodeMapper;
@@ -31,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +55,8 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
 
     @Value("${app.verifiableCredentials.durationDays:90}")
     private int duration;
+    @Value("${app.maxRedirect:5}")
+    private int maxRedirect;
 
     @Override
     public SelfDescription convert(LegalParticipantSchema legalParticipantSchema) {
@@ -61,7 +66,8 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
         var legalParticipant = getLegalPersonVc(legalParticipantSchema, regNumbers.stream().map(VerifiableCredential::getId).toList());
         selfDescription.getVerifiableCredentialList().add(legalParticipant);
         selfDescription.getVerifiableCredentialList().addAll(regNumbers);
-        selfDescription.getVerifiableCredentialList().addAll(getGxTermsAndConditionsVc(legalParticipantSchema));
+        var attachment = Try.of(() -> getGxTermsAndConditionsVc(legalParticipantSchema)).get();
+        selfDescription.getVerifiableCredentialList().addAll(attachment);
         return selfDescription;
     }
 
@@ -150,8 +156,8 @@ public class LegalParticipantSDConverter implements Converter<LegalParticipantSc
      * @param  legalParticipantSchema   the legal participant schema
      * @return                          the list of VC from attachment including Gx Terms and Conditions verifiable credentials
      */
-    private List<VerifiableCredential> getGxTermsAndConditionsVc(LegalParticipantSchema legalParticipantSchema) {
-        var attachment = Optional.ofNullable(legalParticipantSchema.getAttachment()).stream().flatMap(List::stream).map(Map.class::cast).map(VerifiableCredential::fromMap).toList();
+    private List<VerifiableCredential> getGxTermsAndConditionsVc(LegalParticipantSchema legalParticipantSchema) throws Utils.TooManyRedirectsException, IOException {
+        var attachment = Utils.getAttachmentVc(legalParticipantSchema.getAttachment(), maxRedirect);
         if (attachment.stream().flatMap(vc -> Optional.ofNullable(vc.getCredentialSubject()).stream())
                 .anyMatch(subj ->
                         "gx:GaiaXTermsAndConditions".equals(subj.getType())

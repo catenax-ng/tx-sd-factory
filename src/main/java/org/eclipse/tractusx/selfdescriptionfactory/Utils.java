@@ -20,6 +20,7 @@
 
 package org.eclipse.tractusx.selfdescriptionfactory;
 
+import com.danubetech.verifiablecredentials.VerifiableCredential;
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,13 +30,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -117,6 +112,20 @@ public class Utils {
                     }
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+    }
+
+    public static List<VerifiableCredential> getAttachmentVc(List<Object> attachments, int redirects) throws IOException, TooManyRedirectsException {
+        var result = new ArrayList<VerifiableCredential>();
+        for (Object attachment : Optional.ofNullable(attachments).orElse(Collections.emptyList())){
+            if (attachment instanceof String uriStr) {
+                var connection = getConnectionIfRedirected(URI.create(uriStr).toURL(), redirects);
+                result.add(VerifiableCredential.fromJson(new String(connection.getInputStream().readAllBytes())));
+            } else {
+                //noinspection unchecked
+                result.add(VerifiableCredential.fromMap((Map<String, Object>) attachment));
+            }
+        }
+        return result;
     }
 
 }

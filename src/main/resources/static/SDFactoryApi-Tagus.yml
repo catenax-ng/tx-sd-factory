@@ -24,7 +24,7 @@ info:
   title: SD-Factory API
   description: API for creating and storing the Verifiable Credentials
 paths:
-  /api/rel3/selfdescription:
+  /api/tagus/selfdescription:
     post:
       summary: Creates a Verifiable Credential and returns it
       operationId: selfdescriptionPost
